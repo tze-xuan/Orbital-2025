@@ -1,8 +1,8 @@
 # Orbital 2025
 
-##Project Description
+## Project Description
 
-##About Us
+## About Us
 Team Members:
 Khoo Tze Xuan - @tze-xuan
 Lee Wan Xin - @wan-xin-15
