@@ -4,5 +4,5 @@
 
 ## About Us
 Team Members:
-Khoo Tze Xuan - @ tze-xuan
-Lee Wan Xin - @ wan-xin-15
+Khoo Tze Xuan - @tze-xuan
+Lee Wan Xin - @wan-xin-15
