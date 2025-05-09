@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   Image,
-  Box,
   Button,
   Input,
   InputGroup,
@@ -17,154 +16,160 @@ const Login = () => {
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
   return (
-    <Box width="100vw" height="100vh" bgColor="#FFCE58">
-      <Flex justifyContent="center" alignItems="center" direction="column">
+    <Flex
+      direction="column"
+      bgColor="#FFCE58"
+      width="100vw"
+      height="100vh"
+      align="center"
+      justify="center"
+      gap="3vh"
+    >
+      <Text
+        fontFamily="darumadrop"
+        fontSize="400%"
+        maxW="80vw"
+        color="#DC6739"
+        textAlign="center"
+      >
+        Café Chronicles
+      </Text>
+
+      {/* Card */}
+      <Flex
+        bgColor="#FEF1C5"
+        shadow="xl"
+        minWidth="320px"
+        width="40vw"
+        height="42vh"
+        borderRadius="30px"
+        direction="column"
+        gap="2vh"
+        justifyContent="center"
+      >
         <Text
-          fontFamily="darumadrop"
-          fontSize="8xl"
-          color="#DC6739"
-          marginTop="50px"
-          marginBottom="10px"
+          fontSize="6vh"
+          fontFamily="afacad"
+          color="#3E405B"
+          fontWeight="bold"
+          textAlign="center"
         >
-          Café Chronicles
+          LOGIN ID
         </Text>
-
-        {/* Card */}
+        {/* Decor Line */}
         <Flex
-          bgColor="#FEF1C5"
-          shadow="xl"
-          width="650px"
-          height="360px"
-          borderRadius="30px"
-          direction="column"
-          overflow="hidden"
-          paddingTop="20px"
+          bgColor="#3E405B"
+          width="100%"
+          height="1vh"
+          marginBottom="1vh"
+        ></Flex>
+
+        {/* Picture & Details */}
+        <Flex
+          direction="row"
+          alignItems="center"
+          justify="center"
+          marginRight="10%"
+          marginLeft="10%"
+          gap="5%"
         >
-          <Text
-            fontSize="5xl"
-            fontFamily="afacad"
-            color="#3E405B"
-            fontWeight="bold"
-            marginBottom="5px"
-            marginLeft="50px"
-          >
-            LOGIN ID
-          </Text>
-          {/* Decor Line */}
-          <Box bgColor="#3E405B" width="100%" height="20px"></Box>
+          {/* hardcode */}
+          <Image src={tempPhoto} height="20vh" width="30%"></Image>
 
-          {/* Picture & Details */}
-          <Flex
-            direction="row"
-            width="550px"
-            height="100%"
-            alignItems="center"
-            justifyContent="center"
-            marginLeft="50px"
-          >
-            <Image src={tempPhoto} width="180px" height="180px"></Image>
+          {/* Username & Password*/}
+          <Flex direction="column" gap="3vh">
+            {/* Username */}
+            {/* TODO ADD EDGE CASES*/}
+            <InputGroup size="lg">
+              <InputLeftElement>
+                <LuUser color="#DC6739" />
+              </InputLeftElement>
+              <Input
+                variant="subtle"
+                color="#DC6739"
+                placeholder="Username"
+                _placeholder={{
+                  color: "inherit",
+                  fontFamily: "afacad",
+                  fontSize: "xl",
+                }}
+              />
+            </InputGroup>
 
-            <Box width="90px"></Box>
-
-            {/* Username & Password*/}
-            <Flex direction="column" gap="40px">
-              {/* Username */}
-              {/* TODO ADD EDGE CASES*/}
-              <InputGroup size="lg">
-                <InputLeftElement>
-                  <LuUser color="#DC6739" />
-                </InputLeftElement>
-                <Input
-                  variant="subtle"
+            {/* Password */}
+            {/* TODO ADD EDGE CASES*/}
+            <InputGroup size="lg">
+              <InputLeftElement>
+                <LuLock color="#DC6739" />
+              </InputLeftElement>
+              <Input
+                type={show ? "text" : "password"}
+                color="#DC6739"
+                _placeholder={{
+                  color: "inherit",
+                  fontFamily: "afacad",
+                  fontSize: "xl",
+                }}
+                placeholder="Enter password"
+                variant="subtle"
+              />
+              <InputRightElement width="5rem">
+                <Button
+                  bg="white"
                   color="#DC6739"
-                  placeholder="Username"
-                  _placeholder={{
-                    color: "inherit",
-                    fontFamily: "afacad",
-                    fontSize: "xl",
-                  }}
-                />
-              </InputGroup>
-
-              {/* Password */}
-              {/* TODO ADD EDGE CASES*/}
-              <InputGroup size="lg">
-                <InputLeftElement>
-                  <LuLock color="#DC6739" />
-                </InputLeftElement>
-                <Input
-                  type={show ? "text" : "password"}
-                  color="#DC6739"
-                  _placeholder={{
-                    color: "inherit",
-                    fontFamily: "afacad",
-                    fontSize: "xl",
-                  }}
-                  placeholder="Enter password"
-                  variant="subtle"
-                />
-                <InputRightElement width="5rem">
-                  <Button
-                    bg="white"
-                    color="#DC6739"
-                    onClick={handleClick}
-                    fontFamily="afacad"
-                    variant="link"
-                    fontSize="lg"
-                  >
-                    {show ? "Hide" : "Show"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </Flex>
+                  onClick={handleClick}
+                  fontFamily="afacad"
+                  variant="link"
+                  fontSize="lg"
+                >
+                  {show ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
           </Flex>
         </Flex>
+      </Flex>
 
-        {/* Login Button */}
+      {/* Login Button */}
+      <Button
+        asChild
+        borderRadius="50px"
+        height="50px"
+        width="120px"
+        fontSize="xl"
+        fontFamily="afacad"
+        bg="#3970B5"
+        color="white"
+        shadow="xl"
+        _hover={{
+          bg: "white",
+          color: "#3970B5",
+        }}
+      >
+        <a href="/home">Login</a>
+      </Button>
+      <Flex direction="row" gap="4px">
+        <Text fontFamily="afacad" fontSize="lg">
+          Don’t have an account?
+        </Text>
         <Button
-          asChild
-          marginTop="25px"
-          borderRadius="50px"
-          height="50px"
-          width="120px"
-          fontSize="xl"
+          variant="link"
+          size="2xs"
           fontFamily="afacad"
-          bg="#3970B5"
-          color="white"
-          shadow="xl"
+          fontSize="lg"
+          color="#3E405B"
           _hover={{
-            bg: "white",
-            color: "#3970B5",
+            color: "#DC6739",
+            textDecor: "underline",
           }}
         >
-          <a href="/home">Login</a>
+          <a href="/signup">Sign Up</a>
         </Button>
-        <Flex direction="row" marginTop="15px">
-          <Text fontFamily="afacad" fontSize="lg">
-            Don’t have an account?
-          </Text>
-          <Button
-            variant="link"
-            size="2xs"
-            fontFamily="afacad"
-            fontSize="lg"
-            marginLeft="7px"
-            marginRight="5px"
-            marginTop="1px"
-            color="#3E405B"
-            _hover={{
-              color: "#DC6739",
-              textDecor: "underline",
-            }}
-          >
-            <a href="/signup">Sign Up</a>
-          </Button>
-          <Text fontFamily="afacad" fontSize="lg">
-            now!
-          </Text>
-        </Flex>
+        <Text fontFamily="afacad" fontSize="lg">
+          now!
+        </Text>
       </Flex>
-    </Box>
+    </Flex>
   );
 };
 
