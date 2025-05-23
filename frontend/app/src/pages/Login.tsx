@@ -15,6 +15,7 @@ import { LuUser, LuLock } from "react-icons/lu";
 const Login = () => {
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
+
   return (
     <Flex
       direction="column"
@@ -35,7 +36,7 @@ const Login = () => {
         Café Chronicles
       </Text>
 
-      {/* Card */}
+      {/* Login Card */}
       <Flex
         bgColor="#FEF1C5"
         shadow="xl"
@@ -56,29 +57,24 @@ const Login = () => {
         >
           LOGIN ID
         </Text>
-        {/* Decor Line */}
-        <Flex
-          bgColor="#3E405B"
-          width="100%"
-          height="1vh"
-          marginBottom="1vh"
-        ></Flex>
 
-        {/* Picture & Details */}
+        {/* Decorative Line */}
+        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="1vh" />
+
+        {/* Profile Picture & Login Details */}
         <Flex
           direction="row"
           alignItems="center"
           justify="center"
-          marginRight="10%"
-          marginLeft="10%"
+          mx="10%"
           gap="5%"
         >
-          {/* hardcode */}
-          <Image src={tempPhoto} height="20vh" width="30%"></Image>
+          {/* Image */}
+          <Image src={tempPhoto} height="20vh" width="30%" />
 
-          {/* Username & Password*/}
+          {/* Login Form */}
           <Flex direction="column" gap="3vh">
-            {/* Username */}
+            {/* Username Input */}
             {/* TODO ADD EDGE CASES*/}
             <InputGroup size="lg">
               <InputLeftElement>
@@ -87,6 +83,8 @@ const Login = () => {
               <Input
                 variant="subtle"
                 color="#DC6739"
+                border="1px solid black"
+                borderRadius="50px"
                 placeholder="Username"
                 _placeholder={{
                   color: "inherit",
@@ -96,7 +94,7 @@ const Login = () => {
               />
             </InputGroup>
 
-            {/* Password */}
+            {/* Password Input */}
             {/* TODO ADD EDGE CASES*/}
             <InputGroup size="lg">
               <InputLeftElement>
@@ -105,6 +103,8 @@ const Login = () => {
               <Input
                 type={show ? "text" : "password"}
                 color="#DC6739"
+                border="1px solid black"
+                borderRadius="50px"
                 _placeholder={{
                   color: "inherit",
                   fontFamily: "afacad",
@@ -132,7 +132,8 @@ const Login = () => {
 
       {/* Login Button */}
       <Button
-        asChild
+        as="a"
+        href="/home"
         borderRadius="50px"
         height="50px"
         width="120px"
@@ -146,8 +147,10 @@ const Login = () => {
           color: "#3970B5",
         }}
       >
-        <a href="/home">Login</a>
+        Login
       </Button>
+
+      {/* Sign Up Link */}
       <Flex direction="row" gap="4px">
         <Text fontFamily="afacad" fontSize="lg">
           Don’t have an account?
