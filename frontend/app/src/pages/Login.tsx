@@ -83,6 +83,8 @@ const Login = () => {
               <Input
                 variant="subtle"
                 color="#DC6739"
+                border="1px solid black"
+                borderRadius="50px"
                 placeholder="Username"
                 _placeholder={{
                   color: "inherit",
@@ -101,6 +103,8 @@ const Login = () => {
               <Input
                 type={show ? "text" : "password"}
                 color="#DC6739"
+                border="1px solid black"
+                borderRadius="50px"
                 _placeholder={{
                   color: "inherit",
                   fontFamily: "afacad",
