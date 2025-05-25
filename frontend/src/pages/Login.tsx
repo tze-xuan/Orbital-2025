@@ -2,14 +2,12 @@ import React from "react";
 import {
   Flex,
   Text,
-  Image,
   Button,
   Input,
   InputGroup,
   InputLeftElement,
   InputRightElement,
 } from "@chakra-ui/react";
-import tempPhoto from "../images/LoginPhoto.png";
 import { LuUser, LuLock } from "react-icons/lu";
 
 const Login = () => {
@@ -59,7 +57,7 @@ const Login = () => {
         </Text>
 
         {/* Decorative Line */}
-        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="1vh" />
+        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="2vh" />
 
         {/* Profile Picture & Login Details */}
         <Flex
@@ -69,9 +67,6 @@ const Login = () => {
           mx="10%"
           gap="5%"
         >
-          {/* Image */}
-          <Image src={tempPhoto} height="20vh" width="30%" />
-
           {/* Login Form */}
           <Flex direction="column" gap="3vh">
             {/* Username Input */}
