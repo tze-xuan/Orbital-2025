@@ -15,7 +15,7 @@ jobs:
         working-directory: frontend
         run: npm install
       - name: Build
-        working-directory: frontend
+        working-directory: build
         run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
