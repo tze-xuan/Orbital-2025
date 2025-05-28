@@ -26,7 +26,7 @@ const Login = () => {
     >
       <Text
         fontFamily="darumadrop"
-        fontSize="400%"
+        fontSize="430%"
         maxW="80vw"
         color="#DC6739"
         textAlign="center"
@@ -43,8 +43,9 @@ const Login = () => {
         height="42vh"
         borderRadius="30px"
         direction="column"
-        gap="2vh"
+        gap="3vh"
         justifyContent="center"
+        alignItems="center"
       >
         <Text
           fontSize="6vh"
@@ -57,71 +58,62 @@ const Login = () => {
         </Text>
 
         {/* Decorative Line */}
-        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="2vh" />
+        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="1vh" />
 
-        {/* Profile Picture & Login Details */}
-        <Flex
-          direction="row"
-          alignItems="center"
-          justify="center"
-          mx="10%"
-          gap="5%"
-        >
-          {/* Login Form */}
-          <Flex direction="column" gap="3vh">
-            {/* Username Input */}
-            {/* TODO ADD EDGE CASES*/}
-            <InputGroup size="lg">
-              <InputLeftElement>
-                <LuUser color="#DC6739" />
-              </InputLeftElement>
-              <Input
-                variant="subtle"
-                color="#DC6739"
-                border="1px solid black"
-                borderRadius="50px"
-                placeholder="Username"
-                _placeholder={{
-                  color: "inherit",
-                  fontFamily: "afacad",
-                  fontSize: "xl",
-                }}
-              />
-            </InputGroup>
+        {/* Login Form */}
+        <Flex direction="column" gap="3vh" width="80%">
+          {/* Username Input */}
+          {/* TODO ADD EDGE CASES*/}
+          <InputGroup size="lg">
+            <InputLeftElement>
+              <LuUser color="#DC6739" />
+            </InputLeftElement>
+            <Input
+              variant="subtle"
+              color="#DC6739"
+              border="1px solid black"
+              borderRadius="50px"
+              placeholder="Username"
+              _placeholder={{
+                color: "inherit",
+                fontFamily: "afacad",
+                fontSize: "xl",
+              }}
+            />
+          </InputGroup>
 
-            {/* Password Input */}
-            {/* TODO ADD EDGE CASES*/}
-            <InputGroup size="lg">
-              <InputLeftElement>
-                <LuLock color="#DC6739" />
-              </InputLeftElement>
-              <Input
-                type={show ? "text" : "password"}
+          {/* Password Input */}
+          {/* TODO ADD EDGE CASES*/}
+          <InputGroup size="lg">
+            <InputLeftElement>
+              <LuLock color="#DC6739" />
+            </InputLeftElement>
+            <Input
+              type={show ? "text" : "password"}
+              color="#DC6739"
+              border="1px solid black"
+              borderRadius="50px"
+              _placeholder={{
+                color: "inherit",
+                fontFamily: "afacad",
+                fontSize: "xl",
+              }}
+              placeholder="Enter password"
+              variant="subtle"
+            />
+            <InputRightElement width="5rem">
+              <Button
+                bg="white"
                 color="#DC6739"
-                border="1px solid black"
-                borderRadius="50px"
-                _placeholder={{
-                  color: "inherit",
-                  fontFamily: "afacad",
-                  fontSize: "xl",
-                }}
-                placeholder="Enter password"
-                variant="subtle"
-              />
-              <InputRightElement width="5rem">
-                <Button
-                  bg="white"
-                  color="#DC6739"
-                  onClick={handleClick}
-                  fontFamily="afacad"
-                  variant="link"
-                  fontSize="lg"
-                >
-                  {show ? "Hide" : "Show"}
-                </Button>
-              </InputRightElement>
-            </InputGroup>
-          </Flex>
+                onClick={handleClick}
+                fontFamily="afacad"
+                variant="link"
+                fontSize="lg"
+              >
+                {show ? "Hide" : "Show"}
+              </Button>
+            </InputRightElement>
+          </InputGroup>
         </Flex>
       </Flex>
 

@@ -30,7 +30,7 @@ const Home = () => {
           color="#3E405B"
           _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
         >
-          button1
+          <a href="/cafes">Cafes</a>
         </Button>
         <Button
           variant="link"
