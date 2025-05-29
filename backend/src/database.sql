@@ -3,8 +3,8 @@ USE cafechronicles;
 
 CREATE TABLE cafes (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    location VARCHAR(255) NOT NULL
+    cafeName VARCHAR(255) UNIQUE NOT NULL,
+    cafeLocation VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE login(

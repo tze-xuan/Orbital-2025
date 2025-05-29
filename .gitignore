@@ -90,5 +90,5 @@
 /backend/node_modules
 
 # dotenv environment variables file
-/backend/.env
-/backend/.env.test
+/backend/src/config/.env
+/backend/src/config/.env.test
