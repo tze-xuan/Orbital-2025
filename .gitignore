@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# FRONT END
 # dependencies
 /frontend/node_modules
 /frontend/.pnp
@@ -82,3 +83,12 @@
 
 # dataconnect generated files
 /frontend/.dataconnect
+
+
+# BACK END
+# dependencies
+/backend/node_modules
+
+# dotenv environment variables file
+/backend/.env
+/backend/.env.test
