@@ -22,7 +22,7 @@ const Cafes = () => {
   // Handle edit cafe info
   const { isOpen, onOpen, onClose } = useDisclosure();
   const initialRef = React.useRef(null);
-  const finalRef = React.useRef(null);
+  // const finalRef = React.useRef(null);
   const [cafeName, setCafeName] = useState("");
   const [cafeLocation, setCafeLocation] = useState("");
   const [editedId, setEditedId] = useState("");
