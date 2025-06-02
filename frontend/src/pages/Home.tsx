@@ -60,7 +60,7 @@ const Home = () => {
           color="#3E405B"
           _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
         >
-          inbox
+          <a href="/logout">logout</a>
         </Button>
       </Flex>
 
