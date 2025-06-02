@@ -24,7 +24,7 @@ router.post(
 
       res.json("Café added");
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
     }
   }
 );
@@ -33,9 +33,9 @@ router.post(
 router.get("/cafes", async (req: Request, res: Response) => {
   try {
     const [cafes] = await pool.query("SELECT * FROM cafes");
-    res.json(cafes[0]); //get idx 0 to not display buffering stuff
+    res.json([cafes][0]); //get idx 0 to not display buffering stuff
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
   }
 });
 
@@ -48,7 +48,7 @@ router.get(
       const cafes = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
       res.json(cafes);
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
     }
   }
 );
@@ -67,7 +67,7 @@ router.put(
       );
       res.json("Café was updated");
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
     }
   }
 );
@@ -83,7 +83,7 @@ router.delete(
 
       res.json("Café was deleted");
     } catch (err) {
-      console.error(err.message);
+      console.error(err);
     }
   }
 );
