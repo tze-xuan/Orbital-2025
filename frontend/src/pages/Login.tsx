@@ -119,8 +119,6 @@ const Login = () => {
 
       {/* Login Button */}
       <Button
-        as="a"
-        href="/home"
         borderRadius="50px"
         height="50px"
         width="120px"
@@ -134,7 +132,7 @@ const Login = () => {
           color: "#3970B5",
         }}
       >
-        Login
+        <a href="/home">Login</a>
       </Button>
 
       {/* Sign Up Link */}
