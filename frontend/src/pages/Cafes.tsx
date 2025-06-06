@@ -13,6 +13,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Box,
 } from "@chakra-ui/react";
 import React, { useState, useEffect } from "react";
 import Axios from "axios";
@@ -22,7 +23,6 @@ const Cafes = () => {
   // Handle edit cafe info
   const { isOpen, onOpen, onClose } = useDisclosure();
   const initialRef = React.useRef(null);
-  // const finalRef = React.useRef(null);
   const [cafeName, setCafeName] = useState("");
   const [cafeLocation, setCafeLocation] = useState("");
   const [editedId, setEditedId] = useState("");
@@ -62,7 +62,6 @@ const Cafes = () => {
     }
   };
 
-  // TODO
   const handleAdd = async () => {
     try {
       await fetch(`http://localhost:5002/cafes/`, {
@@ -96,18 +95,31 @@ const Cafes = () => {
   useEffect(() => {
     getData();
   }, []);
+
   return (
-    <Flex alignItems="center" direction="column" gap="2vh" padding="7vh">
+    <Flex alignItems="center" direction="column" gap="4svh" padding="6vh">
       <Button
         fontFamily="darumadrop"
-        fontSize="7xl"
+        fontSize="6xl"
         color="#DC6739"
         variant="plain"
-        marginBottom="2vh"
       >
         <a href="/home">Café Chronicles</a>
       </Button>
-      <Text fontSize="5xl"> Cafés </Text>
+      <Flex
+        direction="row"
+        width="100vw"
+        gap="5vw"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Box height="4px" width="35vw" bgColor="#3e405b" />
+        <Text fontSize="6xl" fontWeight="black" fontFamily="afacad">
+          Cafés
+        </Text>
+        <Box height="4px" width="35vw" bgColor="#3e405b" />
+      </Flex>
+
       {/* Flex Container */}
       <Flex
         alignItems="center"
@@ -117,7 +129,7 @@ const Cafes = () => {
         direction="column"
         width="100%"
         gap="2vh"
-        padding="18px"
+        paddingBottom="18px"
       >
         {data == null ||
           Object(data).map((cafe, index) => (
@@ -125,18 +137,26 @@ const Cafes = () => {
               key={index}
               direction="column"
               bgColor="white"
-              width="80%"
+              width="90%"
+              height="25vh"
               alignItems="center"
               justifyContent="center"
-              gap="1vh"
               padding="2vh"
               borderRadius="40px"
               shadow="xl"
             >
-              <Text fontSize="2xl">{cafe.cafeName}</Text>
-              <Text fontSize="lg">{cafe.cafeLocation}</Text>
+              <Text fontSize="2xl" fontFamily="afacad" fontWeight="black">
+                {cafe.cafeName}
+              </Text>
+              <Text fontSize="lg" fontFamily="afacad">
+                {cafe.cafeLocation}
+              </Text>
               <Button
                 background="#DC6739"
+                margin="2"
+                borderRadius="3xl"
+                width="15vw"
+                bgColor="#FFCE58"
                 onClick={() => {
                   editIndex(index);
                   onOpen();
@@ -146,6 +166,9 @@ const Cafes = () => {
               </Button>
               <Button
                 background="#DC6739"
+                borderRadius="3xl"
+                width="15vw"
+                bgColor="#FFCE58"
                 onClick={async () => {
                   await handleDelete(cafe.id);
                   await getData();
@@ -162,7 +185,7 @@ const Cafes = () => {
         background="#3970B5"
         color="white"
         borderRadius="50px"
-        width="50%"
+        width="70%"
         onClick={async () => {
           setCafeName("");
           setCafeLocation("");
