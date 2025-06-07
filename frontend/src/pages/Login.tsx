@@ -22,17 +22,19 @@ const Login = () => {
       height="100vh"
       align="center"
       justify="center"
-      gap="3vh"
+      gap="4vh"
     >
-      <Text
+      <Button
         fontFamily="darumadrop"
         fontSize="430%"
         maxW="80vw"
         color="#DC6739"
         textAlign="center"
+        variant="plain"
+        marginY="5"
       >
-        Café Chronicles
-      </Text>
+        <a href="/">Café Chronicles</a>
+      </Button>
 
       {/* Login Card */}
       <Flex
