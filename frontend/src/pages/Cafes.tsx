@@ -104,7 +104,7 @@ const Cafes = () => {
         color="#DC6739"
         variant="plain"
       >
-        <a href="/home">Café Chronicles</a>
+        <a href="/dashboard">Café Chronicles</a>
       </Button>
       <Flex
         direction="row"
