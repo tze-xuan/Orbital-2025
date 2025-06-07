@@ -58,7 +58,12 @@ const Login = () => {
         </Text>
 
         {/* Decorative Line */}
-        <Flex bgColor="#3E405B" width="100%" height="1vh" marginBottom="1vh" />
+        <Flex
+          bgColor="#3E405B"
+          width="100%"
+          height="1.5vh"
+          marginBottom="1vh"
+        />
 
         {/* Login Form */}
         <Flex direction="column" gap="3vh" width="80%">
@@ -98,7 +103,7 @@ const Login = () => {
                 fontFamily: "afacad",
                 fontSize: "xl",
               }}
-              placeholder="Enter password"
+              placeholder="Password"
               variant="subtle"
             />
             <InputRightElement width="5rem">
@@ -132,7 +137,7 @@ const Login = () => {
           color: "#3970B5",
         }}
       >
-        <a href="/home">Login</a>
+        <a href="/dashboard">Login</a>
       </Button>
 
       {/* Sign Up Link */}
