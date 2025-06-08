@@ -30,7 +30,7 @@ const Cafes = () => {
 
   const handleEdit = async () => {
     try {
-      await fetch(`http://localhost:5002/cafes/` + editedId, {
+      await fetch(`https://cafechronicles.vercel.app/cafes/` + editedId, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -49,7 +49,7 @@ const Cafes = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await fetch(`http://localhost:5002/cafes/` + id, {
+      await fetch(`https://cafechronicles.vercel.app/cafes/` + id, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ const Cafes = () => {
 
   const handleAdd = async () => {
     try {
-      await fetch(`http://localhost:5002/cafes/`, {
+      await fetch(`https://cafechronicles.vercel.app/cafes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,7 +88,7 @@ const Cafes = () => {
   };
 
   const getData = async () => {
-    const response = await Axios.get("http://localhost:5002/cafes");
+    const response = await Axios.get("https://cafechronicles.vercel.app/cafes");
     setData(response.data);
   };
 
@@ -132,7 +132,7 @@ const Cafes = () => {
         paddingBottom="18px"
       >
         {data == null ||
-          Object(data).map(([cafe], [index]) => (
+          Object(data).map((cafe, index) => (
             <Flex
               key={index}
               direction="column"
