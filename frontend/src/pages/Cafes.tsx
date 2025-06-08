@@ -123,7 +123,7 @@ const Cafes = () => {
       {/* Flex Container */}
       <Flex
         alignItems="center"
-        maxH="70vh"
+        maxH="50vh"
         overflowY="auto"
         scrollBehavior="smooth"
         direction="column"
@@ -132,7 +132,7 @@ const Cafes = () => {
         paddingBottom="18px"
       >
         {data == null ||
-          Object(data).map((cafe, index) => (
+          Object(data).map(([cafe], [index]) => (
             <Flex
               key={index}
               direction="column"
