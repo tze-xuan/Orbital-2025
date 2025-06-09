@@ -1,72 +1,40 @@
-import React from "react";
-import { Flex, Text, Button } from "@chakra-ui/react";
+import { Flex, Button } from "@chakra-ui/react";
+import { NavButton } from "../components/Buttons.tsx";
 
 const Home = () => {
   return (
-    <Flex justifyContent="center" alignItems="center" direction="column">
+    <Flex height="100vh" width="100vw">
       <Flex
         direction="row"
+        bgColor="#FFCE58"
         width="100vw"
-        gap="200px"
+        height="14vh"
+        alignItems="center"
         justifyContent="center"
-        marginTop="25px"
+        gap="10vw"
       >
-        {/* TODO TIDY UP BUTTONS W CONST */}
+        <NavButton>button</NavButton>
+        <NavButton>button</NavButton>
         <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
+          variant="plain"
+          fontFamily="darumadrop"
+          color="#DC6739"
+          fontSize="3xl"
         >
-          sidebar
+          <a href="/">Café Chronicles</a>
         </Button>
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
+        <NavButton>button</NavButton>
+        <NavButton
+          bgColor="#80B29B"
+          color="#FEF1C5"
+          borderRadius="50px"
+          border="1px"
+          shadow="md"
+          _hover={{ shadow: "dark-lg" }}
         >
-          <a href="/cafes">Cafes</a>
-        </Button>
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
-        >
-          <a href="/community">Our Community</a>
-        </Button>
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
-        >
-          button3
-        </Button>
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
-        >
-          <a href="/logout">logout</a>
-        </Button>
+          <a href="/login">Login</a>
+        </NavButton>
       </Flex>
-
-      <Text fontFamily="darumadrop" fontSize="8xl" color="#DC6739">
-        Café Chronicles
-      </Text>
     </Flex>
   );
 };

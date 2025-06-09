@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@chakra-ui/react": "^2.7.1",
+    "@chakra-ui/react": "^2.10.9",
     "@fontsource/afacad": "^5.2.8",
     "@fontsource/darumadrop-one": "^5.2.5",
     "@svgr/plugin-svgo": "^8.1.0",
@@ -18,11 +18,9 @@
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.2",
-    "react-scripts": "^5.0.1",
-    "resolve-url-loader": "^5.0.0",
-    "svgo": "^3.3.2",
-    "web-vitals": "^2.1.4",
-    "webpack-dev-server": "^4.11.1"
+    "react-scripts": "5.0.1",
+    "typescript": "5.1",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -49,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react": "^19.1.6",
     "nth-check": "2.1.1",
     "webpack-cli": "^6.0.1"
   },
@@ -60,7 +59,8 @@
       "@pmmmwh/react-refresh-webpack-plugin": "0.5.11",
       "svgo": "2.8.0",
       "css-select": "5.1.0"
-    }
+    },
+    "typescript": "5.1"
   },
   "resolutions": {
     "webpack-dev-server": "5.2.2"

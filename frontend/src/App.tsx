@@ -1,5 +1,6 @@
-import Login from "./pages/Login.tsx";
 import Home from "./pages/Home.tsx";
+import Login from "./pages/Login.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import Community from "./pages/Community.tsx";
 import Cafes from "./pages/Cafes.tsx";
@@ -12,8 +13,9 @@ function App() {
       <Router>
         <Routes>
           {/* Public Pages */}
-          <Route path="/" element={<Login />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/community" element={<Community />} />
           <Route path="/cafes" element={<Cafes />} />

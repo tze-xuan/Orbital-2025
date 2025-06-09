@@ -10,8 +10,13 @@ console.log({
 // MAIN APP IMPORTS
 const express = require("express");
 const app = express();
-app.use(express.urlencoded({ extended: true }));
 const cors = require("cors");
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  cors({
+    origin: "https://your-frontend.vercel.app",
+  })
+);
 const pool = require("./src/config/db");
 
 // MIDDLEWARE
@@ -32,7 +37,7 @@ app.post("/cafes", async (req, res) => {
     const { cafeName, cafeLocation } = req.body;
     console.log(req.body);
     const newCafe = await pool.query(
-      "INSERT INTO cafes (cafeName, cafeLocation) VALUES (?, ?)",
+      "INSERT INTO  (cafeName, cafeLocation) VALUES (?, ?)",
       [cafeName, cafeLocation]
     );
     res.json("Café added");

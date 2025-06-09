@@ -1,5 +1,4 @@
-CREATE DATABASE cafechronicles;
-USE cafechronicles;
+USE freedb_CafeChronicles;
 
 CREATE TABLE cafes (
     id INT PRIMARY KEY AUTO_INCREMENT,
