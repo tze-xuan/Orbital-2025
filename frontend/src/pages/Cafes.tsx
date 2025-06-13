@@ -20,6 +20,7 @@ import Axios from "axios";
 
 const Cafes = () => {
   const [data, setData] = useState(null);
+
   // Handle edit cafe info
   const { isOpen, onOpen, onClose } = useDisclosure();
   const initialRef = React.useRef(null);
@@ -28,6 +29,7 @@ const Cafes = () => {
   const [editedId, setEditedId] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  // Helper Functions
   const handleEdit = async () => {
     try {
       await fetch(`https://cafechronicles.vercel.app/cafes/` + editedId, {

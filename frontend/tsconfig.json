@@ -3,6 +3,10 @@
     "jsx": "react-jsx",
     "esModuleInterop": true, // Fixes the React default import error
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    }
   }
 }
