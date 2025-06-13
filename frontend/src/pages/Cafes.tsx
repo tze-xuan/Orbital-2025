@@ -132,7 +132,7 @@ const Cafes = () => {
         paddingBottom="18px"
       >
         {data == null ||
-          Object(data).map((cafe, index) => (
+          Object(data).map((cafe: any, index: any) => (
             <Flex
               key={index}
               direction="column"
