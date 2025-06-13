@@ -9,7 +9,7 @@ export const NavButton = ({ children, ...props }: NavButtonProps) => {
   return (
     <Button
       fontFamily="afacad"
-      fontSize="lg"
+      fontSize={`min(3vw, 3vh)`}
       fontWeight="medium"
       color="#3E405B"
       _hover={{ textDecoration: "underline", color: "#DC6739" }}

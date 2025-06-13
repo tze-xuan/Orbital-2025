@@ -13,7 +13,7 @@
 /frontend/build
 
 # misc
-/frontend/.DS_Store
+.DS_Store
 /frontend/.env
 /frontend/.env.local
 /frontend/.env.development.local
