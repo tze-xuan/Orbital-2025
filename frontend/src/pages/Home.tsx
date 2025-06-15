@@ -1,8 +1,8 @@
 import { Flex, Button, Image, Wrap, Text, Box } from "@chakra-ui/react";
 import { NavButton } from "../components/Buttons.tsx";
 import { HomePosts } from "../components/HomePosts.tsx";
-import { default as Map } from "../images/Map.png";
-import { default as waffles } from "../images/wafflesthecat.jpg";
+import Map from "../images/Map.png";
+import Waffles from "../images/wafflesthecat.jpg";
 
 const Home = () => {
   return (
@@ -79,22 +79,22 @@ const Home = () => {
           flexShrink="0"
         >
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
           <HomePosts>
-            <Image src={waffles} fit="cover"></Image>
+            <Image src={Waffles} fit="cover"></Image>
           </HomePosts>
         </Flex>
         <Flex bg="#DC6739" width="100vw" minH="40vh" marginTop="5vh"></Flex>
