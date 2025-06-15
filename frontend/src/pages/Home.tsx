@@ -2,7 +2,7 @@ import { Flex, Button, Image, Wrap, Text, Box } from "@chakra-ui/react";
 import { NavButton } from "../components/Buttons.tsx";
 import { HomePosts } from "../components/HomePosts.tsx";
 import Map from "../images/Map.png";
-import Waffles from "@/images/Wafflesthecat.jpg";
+import Waffles from "../Wafflesthecat.jpg";
 
 const Home = () => {
   return (
