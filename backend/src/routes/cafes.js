@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require("../config/db");
 
 //CREATE
-router.post("/cafes", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { cafeName, cafeLocation } = req.body;
     await pool.query("INSERT INTO  (cafeName, cafeLocation) VALUES (?, ?)", [
@@ -17,28 +17,28 @@ router.post("/cafes", async (req, res) => {
 });
 
 //GET ALL
-router.get("/cafes", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    await pool.query("SELECT * FROM cafes");
-    res.json("Café(s) found");
+    const cafes = await pool.query("SELECT * FROM cafes");
+    res.json(cafes[0]);
   } catch (err) {
     console.error(err.message);
   }
 });
 
 //GET
-router.get("/cafes/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
-    res.json("Café found");
+    const cafes = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
+    res.json(cafes);
   } catch (err) {
     console.error(err.message);
   }
 });
 
 //UPDATE
-router.put("/cafes/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { cafeName, cafeLocation } = req.body;
@@ -54,7 +54,7 @@ router.put("/cafes/:id", async (req, res) => {
 });
 
 //DELETE
-router.delete("/cafes/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 

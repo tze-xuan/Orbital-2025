@@ -1,30 +1,66 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const pool = require("../config/db");
 
-// API endpoint to save locations
-app.post("/api/locations", async (req, res) => {
+const { Client } = require("@googlemaps/google-maps-services-js");
+
+// Google Maps client
+const mapsClient = new Client({});
+
+// Save cafe and get coordinates
+app.post("/", async (req, res) => {
   try {
-    const { name, lat, lng, address } = req.body;
+    const { cafeName, cafeLocation } = req.body;
+
+    // First geocode the location
+    const geocodeResponse = await mapsClient.geocode({
+      params: {
+        address: cafeLocation,
+        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+      },
+    });
+
+    if (geocodeResponse.data.results.length === 0) {
+      return res.status(404).json({ error: "Address not found" });
+    }
+
+    const { lat, lng } = geocodeResponse.data.results[0].geometry.location;
+
+    // Save to database
     const [result] = await pool.execute(
-      "INSERT INTO locations (name, lat, lng, address) VALUES (?, ?, ?, ?)",
-      [name, lat, lng, address]
+      "INSERT INTO cafes (cafeName, cafeLocation, lat, lng) VALUES (?, ?, ?, ?)",
+      [cafeName, cafeLocation, lat, lng]
     );
-    res.status(201).json({ id: result.insertId, name, lat, lng, address });
+
+    res.json({
+      cafeName,
+      cafeLocation,
+      lat,
+      lng,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to save location" });
+    console.error("Error:", error);
+    res.json(error);
   }
 });
 
 // API endpoint to get locations
-app.get("/api/locations", async (req, res) => {
+app.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM locations");
-    res.json(rows);
+    const [rows] = await pool.query("SELECT * FROM cafes");
+
+    // Transform data to ensure correct format
+    const formattedCafes = rows.map((cafe) => ({
+      ...cafe,
+      lat: Number(cafe.lat),
+      lng: Number(cafe.lng),
+    }));
+
+    res.json(formattedCafes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch locations" });
+    res.status(500).json({ error: "Failed to fetch cafes" });
   }
 });
 
