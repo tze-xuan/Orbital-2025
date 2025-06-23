@@ -6,8 +6,7 @@ const app = express();
 // Middleware must be before routes
 app.use(
   cors({
-    // origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    origin: "*",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
   })
 );
