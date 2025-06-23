@@ -3,10 +3,12 @@ USE freedb_CafeChronicles;
 CREATE TABLE cafes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     cafeName VARCHAR(255) UNIQUE NOT NULL,
-    cafeLocation VARCHAR(255) NOT NULL
+    cafeLocation VARCHAR(255) NOT NULL,
+    lat DECIMAL(10,7) NOT NULL,
+    lng DECIMAL(10,7) NOT NULL
 );
 
-CREATE TABLE users(
+CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL

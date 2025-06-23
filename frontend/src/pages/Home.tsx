@@ -1,7 +1,7 @@
 import { Flex, Button, Image, Wrap, Text, Box } from "@chakra-ui/react";
 import { NavButton } from "../components/Buttons.tsx";
 import { HomePosts } from "../components/HomePosts.tsx";
-import Map from "../images/Map.png";
+import { Maps } from "../components/Maps.tsx";
 import Waffles from "../images/wafflesthecat.jpg";
 
 const Home = () => {
@@ -45,9 +45,11 @@ const Home = () => {
         <Text fontFamily="afacad" fontSize="3xl" margin="2vh">
           Discover Cafés Nearby!
         </Text>
-        <Flex></Flex>
 
-        <Image src={Map} width="100%"></Image>
+        {/* Must specify same dimensions as component */}
+        <Flex height="100vh" width="100%">
+          <Maps />
+        </Flex>
 
         {/* Recent Reviews Header */}
         <Flex

@@ -19,6 +19,7 @@ import React, { useState, useEffect } from "react";
 import Axios from "axios";
 
 const Cafes = () => {
+  const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
   const [data, setData] = useState(null);
 
   // Handle edit cafe info
@@ -32,7 +33,7 @@ const Cafes = () => {
   // Helper Functions
   const handleEdit = async () => {
     try {
-      await fetch(`https://cafechronicles.vercel.app/cafes/` + editedId, {
+      await fetch(CAFE_API_ROUTE + editedId, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -51,7 +52,7 @@ const Cafes = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await fetch(`https://cafechronicles.vercel.app/cafes/` + id, {
+      await fetch(CAFE_API_ROUTE + id, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,7 +67,7 @@ const Cafes = () => {
 
   const handleAdd = async () => {
     try {
-      await fetch(`https://cafechronicles.vercel.app/cafes`, {
+      await fetch(CAFE_API_ROUTE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -90,7 +91,7 @@ const Cafes = () => {
   };
 
   const getData = async () => {
-    const response = await Axios.get("https://cafechronicles.vercel.app/cafes");
+    const response = await Axios.get(CAFE_API_ROUTE);
     setData(response.data);
   };
 
