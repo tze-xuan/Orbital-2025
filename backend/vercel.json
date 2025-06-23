@@ -11,12 +11,5 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ],
-  "headers": [
-    {
-      "key": "Access-Control-Allow-Origin",
-      "value": "https://orbital-5c65d.web.app"
-    },
-    { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" }
   ]
 }
