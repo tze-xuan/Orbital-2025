@@ -47,7 +47,7 @@ export const Maps = () => {
     lat: 1.364917, // Default Singapore coordinates
     lng: 103.822872,
   });
-  const [loadingLocation, setLoadingLocation] = useState(true);
+  const [, setLoadingLocation] = useState(true);
 
   // Load cafes on mount
   useEffect(() => {
