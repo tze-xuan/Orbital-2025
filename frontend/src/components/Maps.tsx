@@ -43,6 +43,11 @@ export const Maps = () => {
     name: "",
     location: "",
   });
+  const [userLocation, setUserLocation] = useState({
+    lat: 1.364917, // Default Singapore coordinates
+    lng: 103.822872,
+  });
+  const [loadingLocation, setLoadingLocation] = useState(true);
 
   // Load cafes on mount
   useEffect(() => {
@@ -56,6 +61,36 @@ export const Maps = () => {
       }
     };
     fetchCafes();
+
+    // Get user's current location
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setLoadingLocation(false);
+          // Clear watcher after getting first accurate reading
+          navigator.geolocation.clearWatch(watchId);
+        },
+        (error) => {
+          console.error("Location error:", error);
+          // Fallback to default if mobile GPS fails
+          setUserLocation({ lat: 1.364917, lng: 103.822872 });
+          setLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: true, // Prioritize GPS
+          maximumAge: 0,
+          timeout: 15000,
+        }
+      );
+
+      return () => navigator.geolocation.clearWatch(watchId); // Cleanup
+    } else {
+      setLoadingLocation(false);
+    }
   }, []);
 
   const handleAddMarker = async () => {
@@ -107,11 +142,7 @@ export const Maps = () => {
 
       <Flex flex={1}>
         <APIProvider apiKey={apiKey}>
-          <Map
-            mapId={mapId}
-            defaultZoom={12}
-            defaultCenter={{ lat: 1.364917, lng: 103.822872 }}
-          >
+          <Map mapId={mapId} defaultZoom={16} defaultCenter={userLocation}>
             {cafes.map((cafe) => (
               <GeocodedMarker key={cafe.id} cafe={cafe} />
             ))}
