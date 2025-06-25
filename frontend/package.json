@@ -5,7 +5,7 @@
   "dependencies": {
     "@chakra-ui/react": "^2.10.9",
     "@fontsource/afacad": "^5.2.8",
-    "@fontsource/darumadrop-one": "^5.2.5",
+    "@fontsource/darumadrop-one": "^5.2.6",
     "@svgr/plugin-svgo": "^8.1.0",
     "@svgr/webpack": "^6.5.1",
     "@testing-library/dom": "^10.4.0",
