@@ -6,10 +6,10 @@ const app = express();
 // Middleware must be before routes
 app.use(
   cors({
-    origin:
-      process.env.FRONTEND_URL ||
-      "http://localhost:3000" ||
-      "https://orbital-5c65d.web.app",
+    origin: [
+      "https://orbital-5c65d.web.app", // Production
+      "http://localhost:3000", // Development
+    ],
     credentials: true,
   })
 );

@@ -5,14 +5,6 @@ const pool = require("../config/db");
 
 const { Client } = require("@googlemaps/google-maps-services-js");
 
-// Add CORS middleware at the top of your app
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://orbital-5c65d.web.app"); // Your frontend URL
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
-
 // Google Maps client
 const mapsClient = new Client({});
 
