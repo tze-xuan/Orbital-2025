@@ -15,10 +15,11 @@ CREATE TABLE users (
 );
 
 CREATE TABLE reviews (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
     cafe_id INT,
-    rating TINYINT,
+    rating TINYINT UNSIGNED NOT NULL
+    CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),

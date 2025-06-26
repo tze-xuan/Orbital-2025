@@ -6,6 +6,7 @@ const methodOverride = require("method-override");
 const cors = require("cors");
 const passport = require("passport");
 const app = express();
+import pool from "./src/config/db.js";
 
 const initialize = require("./src/config/passport-config.js");
 initialize(passport);
@@ -52,4 +53,24 @@ app.listen(PORT, () => {
     dbHost: process.env.DB_HOST,
     db: process.env.DB_NAME,
   });
+});
+
+// REVIEW & RATING ROUTE ------
+app.post('/reviews', async (req, res) => {
+  const { user_id, item_id, rating, comment } = req.body;
+
+  // Validate rating (1-5)
+  if (rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Invalid rating' });
+  }
+
+  try {
+    const result = await db.query(
+      'INSERT INTO reviews (user_id, item_id, rating, comment) VALUES (?, ?, ?, ?)',
+      [user_id, cafe_id, rating, comment]
+    );
+    res.status(201).json({message: 'Review submitted'});
+  } catch(err) {
+    res.status(500).json({error: 'Database error'});
+  }
 });
