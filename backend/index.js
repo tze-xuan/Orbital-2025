@@ -6,7 +6,6 @@ const methodOverride = require("method-override");
 const cors = require("cors");
 const passport = require("passport");
 const app = express();
-import pool from "./src/config/db.js";
 
 const initialize = require("./src/config/passport-config.js");
 initialize(passport);
@@ -56,6 +55,7 @@ app.listen(PORT, () => {
 });
 
 // REVIEW & RATING ROUTE ------
+// Submit review
 app.post('/reviews', async (req, res) => {
   const { user_id, item_id, rating, comment } = req.body;
 
@@ -74,3 +74,32 @@ app.post('/reviews', async (req, res) => {
     res.status(500).json({error: 'Database error'});
   }
 });
+
+// Get reviews
+app.get('/:cafe_id/reviews', async(req, res) => {
+  const cafe_id = req.params.cafe_id;
+
+  try {
+    const [reviews] = await db.query(
+      `SELECT r.*, u.username
+      FROM reviews r
+      JOIN users u on r.user_id = u.id
+      WHERE cafe_id = ?
+      ORDER BY created_at DESC`,
+      [cafe_id]
+    );
+
+    const avgRating = await db.query(
+      'SELECT AVG(rating) AS average FROM reviews WHERE cafe_id = ?'
+      [cafe_id]
+    );
+
+    res.json({
+      averageRating: avgRating[0].average || 0,
+      reviews
+    });
+    
+  } catch (err) {
+    res.status(500).json({error: 'Database error'});
+  }
+})
