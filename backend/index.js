@@ -10,6 +10,8 @@ app.use(
       "https://orbital-5c65d.web.app", // Production
       "http://localhost:3000", // Development
     ],
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allowed headers
     credentials: true,
   })
 );
