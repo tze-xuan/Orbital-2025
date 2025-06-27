@@ -11,21 +11,29 @@
   "description": "",
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.1",
-    "bcryptjs": "3.0.2",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-flash": "^0.0.2",
     "express-session": "^1.18.1",
+    "method-override": "^3.0.0",
     "mysql2": "^3.14.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "path-match": "^1.2.4"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2"
+    "@types/express": "^5.0.2",
+    "@types/express-flash": "^0.0.5",
+    "@types/express-session": "^1.18.2",
+    "@types/method-override": "^3.0.0",
+    "@types/passport-local": "^1.0.38"
   },
   "resolutions": {
     "bcrypt": false
-  }
+  },
+  "type": "commonjs"
 }
