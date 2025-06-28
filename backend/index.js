@@ -1,7 +1,14 @@
 require("dotenv").config();
 const express = require("express");
+const flash = require("express-flash");
+const session = require("express-session");
+const methodOverride = require("method-override");
 const cors = require("cors");
+const passport = require("passport");
 const app = express();
+
+const initialize = require("./src/config/passport-config.js");
+initialize(passport);
 
 // Middleware must be before routes
 app.use(
@@ -14,6 +21,17 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(flash());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false, // won't resave session variable if nothing is changed
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(methodOverride("_method"));
 
 // Health check route - must come BEFORE mounting the auth router
 app.get("/", (req, res) => {

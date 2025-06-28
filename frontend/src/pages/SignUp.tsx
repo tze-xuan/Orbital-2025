@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
 import {
   Flex,
   Text,
@@ -7,12 +7,95 @@ import {
   InputGroup,
   InputLeftElement,
   InputRightElement,
+  useToast,
+  FormErrorMessage,
+  Box,
 } from "@chakra-ui/react";
 import { LuUser, LuLock } from "react-icons/lu";
+import { Values, Errors, SignupValidation } from "./Login.tsx";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+  const toast = useToast();
   const [show, setShow] = React.useState(false);
+  const [values, setValues] = React.useState<Values>({
+    username: "",
+    password: "",
+  });
+  const [errors, setErrors] = React.useState<Errors>({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const valuesRef = React.useRef(values);
+  valuesRef.current = values;
+
   const handleClick = () => setShow(!show);
+
+  const handleInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const newValues = {
+      ...valuesRef.current,
+      [event.target.name]: event.target.value,
+    };
+    setValues(newValues);
+    setErrors((prev) => ({ ...prev, username: undefined }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrors({});
+
+    const validationErrors = await SignupValidation(valuesRef.current);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const normalizedValues = {
+        ...values,
+        username: values.username.trim().toLowerCase(),
+      };
+      const response = await axios.post(
+        "http://localhost:5002/signup",
+        normalizedValues
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Account created successfully!",
+          description: "Redirecting to login...",
+          status: "success",
+          duration: 2000, // show for 2 seconds
+          isClosable: true,
+          onCloseComplete: () => navigate("/"),
+        });
+      }
+    } catch (err) {
+      console.log(err);
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 409) {
+          setErrors((prev) => ({
+            ...prev,
+            username: "Username is already taken",
+          }));
+        } else {
+          toast({
+            title: "Error",
+            description: err.response?.data?.message || "An error occurred",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Flex
@@ -34,7 +117,7 @@ const SignUp = () => {
         Café Chronicles
       </Text>
 
-      {/* Login Card */}
+      {/* Sign Up Card */}
       <Flex
         bgColor="#FEF1C5"
         shadow="xl"
@@ -70,6 +153,9 @@ const SignUp = () => {
               <LuUser color="#DC6739" />
             </InputLeftElement>
             <Input
+              name="username"
+              value={values.username}
+              onChange={handleInput}
               variant="subtle"
               color="#DC6739"
               border="1px solid black"
@@ -83,6 +169,22 @@ const SignUp = () => {
             />
           </InputGroup>
 
+          <FormErrorMessage
+            mt="-1"
+            mb={0}
+            ml={1}
+            fontSize="sm"
+            lineHeight="tight"
+          >
+            {errors.username}
+          </FormErrorMessage>
+
+          {errors.username && (
+            <Text color="red.500" mt={1} ml={2} fontSize="sm">
+              {errors.username}
+            </Text>
+          )}
+
           {/* Password Input */}
           {/* TODO ADD EDGE CASES*/}
           <InputGroup size="lg">
@@ -91,6 +193,9 @@ const SignUp = () => {
             </InputLeftElement>
             <Input
               type={show ? "text" : "password"}
+              name="password"
+              value={values.password}
+              onChange={handleInput}
               color="#DC6739"
               border="1px solid black"
               borderRadius="50px"
@@ -115,26 +220,43 @@ const SignUp = () => {
               </Button>
             </InputRightElement>
           </InputGroup>
+
+          {errors.password && (
+            <Text color="red.500" mt={1} ml={2} fontSize="sm">
+              {errors.password}
+            </Text>
+          )}
         </Flex>
       </Flex>
 
-      {/* Login Button */}
-      <Button
-        borderRadius="50px"
-        height="50px"
-        width="120px"
-        fontSize="xl"
-        fontFamily="afacad"
-        bg="#80B29B"
-        color="white"
-        shadow="xl"
-        _hover={{
-          bg: "white",
-          color: "#3970B5",
-        }}
+      <Box
+        as="form"
+        onSubmit={handleSubmit}
+        width="100%"
+        display="flex"
+        justifyContent="center"
       >
-        <a href="/dashboard">Sign Up</a>
-      </Button>
+        {/* Login Button */}
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          disabled={isSubmitting}
+          borderRadius="50px"
+          height="50px"
+          width="120px"
+          fontSize="xl"
+          fontFamily="afacad"
+          bg="#80B29B"
+          color="white"
+          shadow="xl"
+          _hover={{
+            bg: "white",
+            color: "#3970B5",
+          }}
+        >
+          <a href="/dashboard">Register</a>
+        </Button>
+      </Box>
 
       {/* Sign Up Link */}
       <Flex direction="row" gap="4px">

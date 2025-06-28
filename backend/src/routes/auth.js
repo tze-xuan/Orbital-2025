@@ -1,130 +1,176 @@
 const express = require("express");
-const mysql = require("mysql2/promise");
-const bcrypt = require("bcryptjs");
-const session = require("express-session");
-require("dotenv").config();
-
-// Create router
 const router = express.Router();
+const pool = require("../config/db");
+const passport = require("passport");
+const bcrypt = require("bcrypt");
 
-// Database connection
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+// (2) LOGIN ROUTE ------
+router.post("/", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
 
-// Session middleware
-router.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false },
-  })
-);
-
-// Auth middleware
-const requireAuth = (req, res, next) => {
-  if (!req.session.userId) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
-  }
-  next();
-};
-
-// Register
-router.post("/register", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      throw new Error("Username and password are required");
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await pool.execute(
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      return res.json({
+        message: "Login successful",
+        user: { id: user.id, username: user.username },
+      });
+    });
+  })(req, res, next);
+});
+
+// (3) SIGNUP ROUTE ------
+router.post("/signup", async (req, res) => {
+  const { username, password } = req.body;
+
+  // Trim username
+  const normalisedUsername = username.trim().toLowerCase();
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    // Insert new user
+    const [result] = await pool.query(
       "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, hashedPassword]
+      [normalisedUsername, hashedPassword]
     );
 
-    res.status(201).json({
-      success: true,
-      data: { username: result.username },
+    // Retrieve newly created user ID
+    const newUserId = result.insertId;
+
+    // 4. Success
+    res.json({
+      message: "Signup successful",
+      userId: newUserId,
     });
-  } catch (error) {
-    const status = error.code === "ER_DUP_ENTRY" ? 409 : 400;
-    res.status(status).json({
-      success: false,
-      message: error.message,
-    });
+  } catch (err) {
+    console.error(err);
+    res.json({ message: "Server error during signup" });
   }
 });
 
-// Login
-router.post("/login", async (req, res) => {
+// routes only accessible when not logged in (login/signup)
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return res.redirect("/"); // redirect logged in users away
+  }
+  next(); // User is not authenticated - proceed to login/signup page
+}
+
+// (4) CHECK-USERNAME ROUTE ------
+router.get("/check-username", async (req, res) => {
+  const { username } = req.query;
+
+  // Validate input
+  if (typeof username !== "string") {
+    return res.status(400).json({ error: "Invalid username format" });
+  }
+
+  // Normalize username
+  const normalisedUsername = username.trim().toLowerCase();
+
   try {
-    const { username, password } = req.body;
+    const [users] = await pool.query(
+      "SELECT * FROM users WHERE LOWER(username) = LOWER(?)",
+      [normalisedUsername]
+    );
 
-    if (!username || !password) {
-      res.json({
-        success: false,
-        message: "Username & password are required",
-      });
+    res.json({ available: users.length === 0 });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// (5) LOGOUT ROUTE ------
+router.post("/logout", checkAuthenticated, (req, res, next) => {
+  req.logOut((err) => {
+    if (err) return next(err);
+    res.redirect("/");
+  });
+});
+
+// routes that require authentication (profile/homepage)
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    // isAuthenticated == whether user logged in
+    return next(); // user authenticated, proceeds to protected route
+  }
+  // User is not authenticated - redirect to login with a flash message
+  req.flash("error", "Please log in to access this page");
+  return res.redirect("/login");
+}
+
+// (6) USER ROUTE ------
+// GET ALL USERS
+router.get("/users", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM users");
+    res.json(result[0]);
+  } catch (err) {
+    console.error(err);
+    res.send(err);
+  }
+});
+
+//GET USER BY USERNAME
+router.get("/users/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const users = await pool.query("SELECT * FROM users WHERE username = ?", [
+      username,
+    ]);
+    if (!users.length) {
+      res.json("USER NOT FOUND");
+    } else {
+      res.json(users[0]);
+    } //get idx 0 to not display buffering stuff}
+  } catch (err) {
+    console.error(err.message);
+  }
+});
+
+//UPDATE USER DETAILS
+router.put("/users/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { password } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const updateUsers = await pool.query(
+      "UPDATE users SET password = ? WHERE username = ?",
+      [hashedPassword, username]
+    );
+    if (!updateUsers.affectedRows) {
+      res.json("USER NOT FOUND");
     }
+    res.json("User was updated");
+  } catch (err) {
+    console.error(err.message);
+  }
+});
 
-    const [users] = await pool.execute(
-      "SELECT * FROM users WHERE username = ?",
+//DELETE USER ACCOUNT
+router.delete("/users/:username", async (req, res) => {
+  try {
+    const { username } = req.params;
+    const [deleteUsers] = await pool.query(
+      "DELETE FROM users WHERE username = ?",
       [username]
     );
 
-    if (!users.length) {
-      res.json({
-        success: false,
-        message: "User not found",
-      });
+    if (!deleteUsers.affectedRows) {
+      return res.json("USER NOT FOUND");
     }
-
-    const user = users[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.json({
-        success: false,
-        message: "Incorrect password",
-      });
-    }
-
-    req.session.userId = user.id;
-    res.json({
-      success: true,
-      data: { username: user.username },
-      message: "Logged in successfully",
-    });
-  } catch (error) {
-    res.json({
-      success: false,
-      message: error.message,
-    });
+    res.json("User was deleted");
+  } catch (err) {
+    console.error(err.message);
   }
-});
-
-// Logout
-router.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.json({
-        success: false,
-        message: "Logout failed",
-      });
-    }
-    res.clearCookie("connect.sid");
-    res.json({
-      success: true,
-      message: "Logged out successfully",
-    });
-  });
 });
 
 module.exports = router;
