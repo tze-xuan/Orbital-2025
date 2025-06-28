@@ -22,10 +22,14 @@ app.post("/", async (req, res) => {
     });
 
     if (geocodeResponse.data.results.length === 0) {
+      console.error("Address not found");
       return res.status(404).json({ error: "Address not found" });
     }
 
     const { lat, lng } = geocodeResponse.data.results[0].geometry.location;
+    if (!lat || !lng) {
+      return res.status(404).json({ error: "Coordinates has issue" });
+    }
 
     // Save to database
     const [result] = await pool.execute(

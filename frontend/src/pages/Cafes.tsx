@@ -67,7 +67,7 @@ const Cafes = () => {
 
   const handleAdd = async () => {
     try {
-      await fetch(CAFE_API_ROUTE, {
+      const response = await fetch(CAFE_API_ROUTE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -75,6 +75,7 @@ const Cafes = () => {
           cafeLocation: cafeLocation,
         }),
       });
+      if (!response.ok) throw new Error("Failed to add café");
       setCafeName("");
       setCafeLocation("");
       setIsAddModalOpen(false);
@@ -95,9 +96,17 @@ const Cafes = () => {
     setData(response.data);
   };
 
+  // Fetch data on initial render
   useEffect(() => {
     getData();
   }, []);
+
+  // Add this new useEffect for modal-closed behavior
+  useEffect(() => {
+    if (!isAddModalOpen) {
+      getData(); // Fetch fresh data after add-modal closes
+    }
+  }, [isAddModalOpen]); // Triggered when isAddModalOpen changes
 
   return (
     <Flex alignItems="center" direction="column" gap="4svh" padding="6vh">
@@ -144,6 +153,7 @@ const Cafes = () => {
               height="25vh"
               alignItems="center"
               justifyContent="center"
+              textAlign="center"
               padding="2vh"
               borderRadius="40px"
               shadow="xl"
@@ -193,8 +203,8 @@ const Cafes = () => {
           setCafeName("");
           setCafeLocation("");
           setIsAddModalOpen(true);
-          await getData();
           onClose();
+          await getData();
         }}
       >
         Add New
