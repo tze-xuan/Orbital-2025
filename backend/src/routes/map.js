@@ -22,6 +22,7 @@ app.post("/", async (req, res) => {
     });
 
     if (geocodeResponse.data.results.length === 0) {
+      console.error("Address not found");
       return res.status(404).json({ error: "Address not found" });
     }
 

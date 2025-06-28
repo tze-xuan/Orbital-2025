@@ -6,10 +6,10 @@ const pool = require("../config/db");
 router.post("/", async (req, res) => {
   try {
     const { cafeName, cafeLocation } = req.body;
-    await pool.query("INSERT INTO  (cafeName, cafeLocation) VALUES (?, ?)", [
-      cafeName,
-      cafeLocation,
-    ]);
+    await pool.query(
+      "INSERT INTO cafes (cafeName, cafeLocation) VALUES (?, ?)",
+      [cafeName, cafeLocation]
+    );
     res.json("Café added");
   } catch (err) {
     console.error(err.message);

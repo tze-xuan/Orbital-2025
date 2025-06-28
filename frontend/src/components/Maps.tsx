@@ -18,8 +18,6 @@ const GeocodedMarker = ({ cafe }) => {
   const lng =
     typeof cafe.lng === "string"
       ? parseFloat(cafe.lng.replace(/[^0-9.-]/g, ""))
-      : typeof cafe.Ing === "string"
-      ? parseFloat(cafe.Ing.replace(/[^0-9.-]/g, ""))
       : cafe.lng;
 
   // Validate coordinates
