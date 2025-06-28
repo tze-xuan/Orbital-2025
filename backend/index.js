@@ -57,7 +57,7 @@ app.listen(PORT, () => {
 // REVIEW & RATING ROUTE ------
 // Submit review
 app.post('/reviews', async (req, res) => {
-  const { user_id, item_id, rating, comment } = req.body;
+  const { user_id, cafe_id, rating, comment } = req.body;
 
   // Validate rating (1-5)
   if (rating < 1 || rating > 5) {
@@ -66,7 +66,7 @@ app.post('/reviews', async (req, res) => {
 
   try {
     const result = await db.query(
-      'INSERT INTO reviews (user_id, item_id, rating, comment) VALUES (?, ?, ?, ?)',
+      'INSERT INTO reviews (user_id, cafe_id, rating, comment) VALUES (?, ?, ?, ?)',
       [user_id, cafe_id, rating, comment]
     );
     res.status(201).json({message: 'Review submitted'});
@@ -98,7 +98,7 @@ app.get('/:cafe_id/reviews', async(req, res) => {
       averageRating: avgRating[0].average || 0,
       reviews
     });
-    
+
   } catch (err) {
     res.status(500).json({error: 'Database error'});
   }
