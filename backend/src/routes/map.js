@@ -27,6 +27,9 @@ app.post("/", async (req, res) => {
     }
 
     const { lat, lng } = geocodeResponse.data.results[0].geometry.location;
+    if (!lat || !lng) {
+      return res.status(404).json({ error: "Coordinates has issue" });
+    }
 
     // Save to database
     const [result] = await pool.execute(
