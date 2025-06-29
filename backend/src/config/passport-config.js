@@ -4,7 +4,7 @@ const pool = require("./db.js");
 const LocalStrategy = passportLocal.Strategy;
 
 async function getUserByUsername(username) {
-  const normalizedUsername = username.toLowerCase().trim();
+  const normalizedUsername = username.trim().toLowerCase();
   try {
     const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [
       normalizedUsername,
