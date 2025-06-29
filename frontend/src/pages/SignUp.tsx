@@ -59,7 +59,7 @@ const SignUp = () => {
         username: values.username.trim().toLowerCase(),
       };
       const response = await axios.post(
-        "http://localhost:5002/signup",
+        "http://localhost:5002/api/auth/signup",
         normalizedValues
       );
 
@@ -70,7 +70,7 @@ const SignUp = () => {
           status: "success",
           duration: 2000, // show for 2 seconds
           isClosable: true,
-          onCloseComplete: () => navigate("/"),
+          onCloseComplete: () => navigate("/login"),
         });
       }
     } catch (err) {
@@ -236,7 +236,7 @@ const SignUp = () => {
         display="flex"
         justifyContent="center"
       >
-        {/* Login Button */}
+        {/* Signup Button */}
         <Button
           type="submit"
           isLoading={isSubmitting}
@@ -254,11 +254,11 @@ const SignUp = () => {
             color: "#3970B5",
           }}
         >
-          <a href="/dashboard">Register</a>
+          Register
         </Button>
       </Box>
 
-      {/* Sign Up Link */}
+      {/* Login Link */}
       <Flex direction="row" gap="4px">
         <Text fontFamily="afacad" fontSize="lg">
           Already have an account?

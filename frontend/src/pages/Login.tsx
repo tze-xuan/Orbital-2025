@@ -50,7 +50,7 @@ async function LoginValidation(values: Values) {
 const checkUsernameAvailability = async (username: string) => {
   try {
     const response = await fetch(
-      `http://localhost:5002/check-username?username=${encodeURIComponent(
+      `http://localhost:5002/api/auth/check-username?username=${encodeURIComponent(
         username.trim().toLowerCase()
       )}`,
       {
@@ -149,8 +149,13 @@ const Login = () => {
       return;
     }
 
+    const normalizedValues = {
+      username: values.username.trim().toLowerCase(), 
+      password: values.password
+    };
+
     try {
-      const response = await axios.post("http://localhost:5002/", values);
+      const response = await axios.post("http://localhost:5002/api/auth/", normalizedValues, { withCredentials: true });
 
       if (response.data.message === "Login successful") {
         toast({
@@ -159,7 +164,7 @@ const Login = () => {
           status: "success",
           duration: 2000, // show for 2 seconds
           isClosable: true,
-          onCloseComplete: () => navigate("/home"),
+          onCloseComplete: () => navigate("/dashboard"),
         });
       } else {
         toast({
