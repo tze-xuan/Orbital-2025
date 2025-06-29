@@ -70,7 +70,7 @@ const SignUp = () => {
           status: "success",
           duration: 2000, // show for 2 seconds
           isClosable: true,
-          onCloseComplete: () => navigate("/"),
+          onCloseComplete: () => navigate("/login"),
         });
       }
     } catch (err) {

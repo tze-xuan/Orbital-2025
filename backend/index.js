@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "https://orbital-5c65d.web.app", // Production
-      "http://localhost:3000", // Development
+      "http://localhost:3001", // Development
     ],
     credentials: true,
   })
