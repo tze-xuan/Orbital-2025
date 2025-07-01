@@ -76,7 +76,7 @@ router.get("/check-username", async (req, res) => {
 
   try {
     const [users] = await pool.query(
-      "SELECT * FROM users WHERE LOWER(username) = LOWER(?)",
+      "SELECT * FROM users WHERE username = ?",
       [normalisedUsername]
     );
 
