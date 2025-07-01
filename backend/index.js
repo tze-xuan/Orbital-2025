@@ -15,13 +15,13 @@ app.use(
   cors({
     origin: [
       "https://orbital-5c65d.web.app", // Production
-      "http://localhost:3001", // Development
+      "http://localhost:3000", // Development
     ],
     credentials: true,
   })
 );
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 app.use(flash());
 app.use(
   session({
@@ -54,4 +54,3 @@ app.listen(PORT, () => {
     db: process.env.DB_NAME,
   });
 });
-
