@@ -7,7 +7,7 @@ import {
   Pin,
 } from "@vis.gl/react-google-maps";
 
-const MAP_API_ROUTE = "https://cafechronicles.vercel.app/api/locations/";
+const MAP_API_ROUTE = "https://cafechronicles.vercel.app/api/locations";
 
 const GeocodedMarker = ({ cafe }) => {
   // Safely parse coordinates
@@ -41,10 +41,7 @@ export const MapWithInput = () => {
     name: "",
     location: "",
   });
-  const [userLocation, setUserLocation] = useState({
-    lat: 1.364917, // Default Singapore coordinates
-    lng: 103.822872,
-  });
+  const [userLocation, setUserLocation] = useState(null);
   const [, setLoadingLocation] = useState(true);
 
   // Load cafes on mount
@@ -147,7 +144,7 @@ export const MapWithInput = () => {
       >
         <APIProvider apiKey={apiKey}>
           <Box width="100%" height="100%" position="relative">
-            <Map mapId={mapId} defaultZoom={16} defaultCenter={userLocation}>
+            <Map mapId={mapId} defaultZoom={16} center={userLocation}>
               {cafes.map((cafe) => (
                 <GeocodedMarker key={cafe.id} cafe={cafe} />
               ))}
