@@ -25,6 +25,8 @@ export interface Errors {
   general?: string;
 }
 
+const AUTH_API_ROUTE = "https://cafechronicles.vercel.app/api/auth/";
+
 async function LoginValidation(values: Values) {
   const errors: Errors = {};
 
@@ -50,7 +52,7 @@ async function LoginValidation(values: Values) {
 const checkUsernameAvailability = async (username: string) => {
   try {
     const response = await fetch(
-      `http://localhost:5002/api/auth/check-username?username=${encodeURIComponent(
+      `${AUTH_API_ROUTE}/check-username?username=${encodeURIComponent(
         username.trim().toLowerCase()
       )}`,
       {
@@ -150,12 +152,14 @@ const Login = () => {
     }
 
     const normalizedValues = {
-      username: values.username.trim().toLowerCase(), 
-      password: values.password
+      username: values.username.trim().toLowerCase(),
+      password: values.password,
     };
 
     try {
-      const response = await axios.post("http://localhost:5002/api/auth/", normalizedValues, { withCredentials: true });
+      const response = await axios.post(AUTH_API_ROUTE, normalizedValues, {
+        withCredentials: true,
+      });
 
       if (response.data.message === "Login successful") {
         toast({
