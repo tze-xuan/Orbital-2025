@@ -1,8 +1,7 @@
 import { Flex, Button, Image, Wrap, Text, Box } from "@chakra-ui/react";
 import { NavButton } from "../components/Buttons.tsx";
 import { HomePosts } from "../components/HomePosts.tsx";
-// import { Maps } from "../components/Maps.tsx";
-import { Maps } from "../components/Map.tsx";
+import { MapWithoutInput } from "../components/MapWithoutInput.tsx";
 import Waffles from "../images/wafflesthecat.jpg";
 
 const Home = () => {
@@ -55,7 +54,7 @@ const Home = () => {
           alignItems="center"
           overflow="clip"
         >
-          <Maps />
+          <MapWithoutInput />
         </Flex>
 
         {/* Recent Reviews Header */}

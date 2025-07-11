@@ -33,7 +33,7 @@ const GeocodedMarker = ({ cafe }) => {
   );
 };
 
-export const Maps = () => {
+export const MapWithoutInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
   const [cafes, setCafes] = useState([]);

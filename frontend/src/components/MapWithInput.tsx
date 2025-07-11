@@ -1,4 +1,4 @@
-import { Button, Flex, Input } from "@chakra-ui/react";
+import { Box, Button, Flex, Input } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
   AdvancedMarker,
@@ -33,7 +33,7 @@ const GeocodedMarker = ({ cafe }) => {
   );
 };
 
-export const Maps = () => {
+export const MapWithInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
   const [cafes, setCafes] = useState([]);
@@ -113,8 +113,8 @@ export const Maps = () => {
   };
 
   return (
-    <Flex direction="column" height="80vh" width="100%" gap={4}>
-      <Flex justifyContent="center" direction="row" gap={2}>
+    <Flex direction="column" height="100%" width="100%" gap={6}>
+      <Flex direction="row" gap={8} width="100%" paddingLeft={10}>
         <Input
           value={currentCafe.name}
           onChange={(e) =>
@@ -122,7 +122,7 @@ export const Maps = () => {
           }
           placeholder="Cafe name"
           bg="white"
-          width="40vw"
+          width="30vw"
         />
         <Input
           value={currentCafe.location}
@@ -138,13 +138,21 @@ export const Maps = () => {
         </Button>
       </Flex>
 
-      <Flex flex={1}>
+      <Flex
+        position="relative" // Important for proper containment
+        width="100vw"
+        height="100vh"
+        justifyContent="center"
+        alignItems="center"
+      >
         <APIProvider apiKey={apiKey}>
-          <Map mapId={mapId} defaultZoom={16} defaultCenter={userLocation}>
-            {cafes.map((cafe) => (
-              <GeocodedMarker key={cafe.id} cafe={cafe} />
-            ))}
-          </Map>
+          <Box width="100%" height="100%" position="relative">
+            <Map mapId={mapId} defaultZoom={16} defaultCenter={userLocation}>
+              {cafes.map((cafe) => (
+                <GeocodedMarker key={cafe.id} cafe={cafe} />
+              ))}
+            </Map>
+          </Box>
         </APIProvider>
       </Flex>
     </Flex>
