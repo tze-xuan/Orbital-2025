@@ -1,4 +1,7 @@
 import { Flex, Text, Button } from "@chakra-ui/react";
+import { MapWithoutInput } from "../components/MapWithoutInput.tsx";
+import SidebarDrawer from "../components/Sidebar.tsx";
+import { NavButton } from "../components/Buttons.tsx";
 
 const Dashboard = () => {
   return (
@@ -11,16 +14,7 @@ const Dashboard = () => {
         marginTop="25px"
       >
         {/* TODO TIDY UP BUTTONS W CONST */}
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
-        >
-          sidebar
-        </Button>
+        <SidebarDrawer />
         <Button
           variant="link"
           fontFamily="afacad"
@@ -49,23 +43,34 @@ const Dashboard = () => {
           color="#3E405B"
           _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
         >
-          button3
+          <a href="/maps">Maps</a>
         </Button>
-        <Button
-          variant="link"
-          fontFamily="afacad"
-          fontSize="2xl"
-          fontWeight="medium"
-          color="#3E405B"
-          _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
+        <NavButton
+          bgColor="#80B29B"
+          color="#FEF1C5"
+          borderRadius="50px"
+          border="1px"
+          shadow="md"
+          _hover={{ shadow: "dark-lg" }}
         >
-          <a href="/">logout</a>
-        </Button>
+          <a href="/login">Logout</a>
+        </NavButton>
       </Flex>
 
       <Text fontFamily="darumadrop" fontSize="8xl" color="#DC6739">
         Café Chronicles
       </Text>
+
+      <Flex
+        position="relative" // Crucial for proper containment
+        height="80%"
+        width="100%"
+        justifyContent="center"
+        alignItems="center"
+        overflow="clip"
+      >
+        <MapWithoutInput />
+      </Flex>
     </Flex>
   );
 };

@@ -1,4 +1,4 @@
-import { Button, Flex, Input } from "@chakra-ui/react";
+import { Flex, Box } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import {
   AdvancedMarker,
@@ -33,14 +33,10 @@ const GeocodedMarker = ({ cafe }) => {
   );
 };
 
-export const Maps = () => {
+export const MapWithoutInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
   const [cafes, setCafes] = useState([]);
-  const [currentCafe, setCurrentCafe] = useState({
-    name: "",
-    location: "",
-  });
   const [userLocation, setUserLocation] = useState({
     lat: 1.364917, // Default Singapore coordinates
     lng: 103.822872,
@@ -91,62 +87,34 @@ export const Maps = () => {
     }
   }, []);
 
-  const handleAddMarker = async () => {
-    if (!currentCafe.name.trim() || !currentCafe.location.trim()) return;
-
-    try {
-      const response = await fetch(MAP_API_ROUTE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cafeName: currentCafe.name,
-          cafeLocation: currentCafe.location,
-        }),
-      });
-
-      const newCafe = await response.json();
-      setCafes([...cafes, newCafe]);
-      setCurrentCafe({ name: "", location: "" });
-    } catch (error) {
-      console.error("Failed to add cafe:", error);
-    }
-  };
-
   return (
-    <Flex direction="column" height="80vh" width="100%" gap={4}>
-      <Flex justifyContent="center" direction="row" gap={2}>
-        <Input
-          value={currentCafe.name}
-          onChange={(e) =>
-            setCurrentCafe({ ...currentCafe, name: e.target.value })
-          }
-          placeholder="Cafe name"
-          bg="white"
-          width="40vw"
-        />
-        <Input
-          value={currentCafe.location}
-          onChange={(e) =>
-            setCurrentCafe({ ...currentCafe, location: e.target.value })
-          }
-          placeholder="Cafe address"
-          bg="white"
-          width="40vw"
-        />
-        <Button onClick={handleAddMarker} colorScheme="blue">
-          Add Cafe
-        </Button>
-      </Flex>
-
-      <Flex flex={1}>
-        <APIProvider apiKey={apiKey}>
-          <Map mapId={mapId} defaultZoom={16} defaultCenter={userLocation}>
+    <Flex
+      position="relative" // Important for proper containment
+      width="100vw"
+      height="100vh"
+      justifyContent="center"
+      alignItems="center"
+    >
+      <APIProvider apiKey={apiKey}>
+        <Box width="100%" height="100%" position="relative">
+          <Map
+            mapId={mapId}
+            defaultZoom={16}
+            defaultCenter={userLocation}
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "absolute", // Makes Map fill its container
+              top: 0,
+              left: 0,
+            }}
+          >
             {cafes.map((cafe) => (
               <GeocodedMarker key={cafe.id} cafe={cafe} />
             ))}
           </Map>
-        </APIProvider>
-      </Flex>
+        </Box>
+      </APIProvider>
     </Flex>
   );
 };
