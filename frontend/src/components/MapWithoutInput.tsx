@@ -37,8 +37,9 @@ export const MapWithoutInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
   const [cafes, setCafes] = useState([]);
-  const [userLocation, setUserLocation] = useState(null);
-  const [, setLoadingLocation] = useState(true);
+  const [userLocation, setUserLocation] = useState(null); // Start with null
+  const [loadingLocation, setLoadingLocation] = useState(true);
+  const [loadingCafes, setLoadingCafes] = useState(true);
 
   // Load cafes on mount
   useEffect(() => {
@@ -49,6 +50,8 @@ export const MapWithoutInput = () => {
         setCafes(data);
       } catch (error) {
         console.error("Failed to load cafes:", error);
+      } finally {
+        setLoadingCafes(false);
       }
     };
     fetchCafes();
@@ -62,31 +65,44 @@ export const MapWithoutInput = () => {
             lng: position.coords.longitude,
           });
           setLoadingLocation(false);
-          // Clear watcher after getting first accurate reading
           navigator.geolocation.clearWatch(watchId);
         },
         (error) => {
           console.error("Location error:", error);
-          // Fallback to default if mobile GPS fails
           setUserLocation({ lat: 1.364917, lng: 103.822872 });
           setLoadingLocation(false);
         },
         {
-          enableHighAccuracy: true, // Prioritize GPS
+          enableHighAccuracy: true,
           maximumAge: 0,
           timeout: 15000,
         }
       );
 
-      return () => navigator.geolocation.clearWatch(watchId); // Cleanup
+      return () => navigator.geolocation.clearWatch(watchId);
     } else {
+      setUserLocation({ lat: 1.364917, lng: 103.822872 });
       setLoadingLocation(false);
     }
   }, []);
 
+  // Don't render map until we have location
+  if (loadingLocation || !userLocation) {
+    return (
+      <Flex
+        width="100vw"
+        height="100vh"
+        justifyContent="center"
+        alignItems="center"
+      >
+        Loading map...
+      </Flex>
+    );
+  }
+
   return (
     <Flex
-      position="relative" // Important for proper containment
+      position="relative"
       width="100vw"
       height="100vh"
       justifyContent="center"
@@ -97,11 +113,11 @@ export const MapWithoutInput = () => {
           <Map
             mapId={mapId}
             defaultZoom={16}
-            center={userLocation}
+            center={userLocation} // Use center instead of defaultCenter
             style={{
               width: "100%",
               height: "100%",
-              position: "absolute", // Makes Map fill its container
+              position: "absolute",
               top: 0,
               left: 0,
             }}
