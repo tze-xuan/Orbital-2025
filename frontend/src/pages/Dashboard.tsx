@@ -1,4 +1,5 @@
 import { Flex, Text, Button } from "@chakra-ui/react";
+import { Maps } from "../components/Map.tsx";
 
 const Dashboard = () => {
   return (
@@ -66,6 +67,8 @@ const Dashboard = () => {
       <Text fontFamily="darumadrop" fontSize="8xl" color="#DC6739">
         Café Chronicles
       </Text>
+
+      <Maps></Maps>
     </Flex>
   );
 };
