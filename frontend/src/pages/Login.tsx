@@ -25,7 +25,7 @@ export interface Errors {
   general?: string;
 }
 
-const AUTH_API_ROUTE = "https://cafechronicles.vercel.app/api/auth/";
+const AUTH_API_ROUTE = "https://cafechronicles.vercel.app/api/auth";
 
 async function LoginValidation(values: Values) {
   const errors: Errors = {};

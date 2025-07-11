@@ -37,10 +37,7 @@ export const MapWithoutInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
   const [cafes, setCafes] = useState([]);
-  const [userLocation, setUserLocation] = useState({
-    lat: 1.364917, // Default Singapore coordinates
-    lng: 103.822872,
-  });
+  const [userLocation, setUserLocation] = useState(null);
   const [, setLoadingLocation] = useState(true);
 
   // Load cafes on mount
@@ -100,7 +97,7 @@ export const MapWithoutInput = () => {
           <Map
             mapId={mapId}
             defaultZoom={16}
-            defaultCenter={userLocation}
+            center={userLocation}
             style={{
               width: "100%",
               height: "100%",
