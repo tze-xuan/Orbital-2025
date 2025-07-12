@@ -36,3 +36,17 @@ CREATE TABLE stamps (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE
 )
+
+CREATE TABLE bookmarks (
+    bookmark_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    cafe_id INT NOT NULL,
+    bookmarked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- prevent duplicate bookmarks
+    UNIQUE (user_id, cafe_id),
+    
+    -- Foreign key constraints
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,    
+    FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE
+);

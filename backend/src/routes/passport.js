@@ -3,11 +3,7 @@ const express = require('express');
 const pool = require("../config/db");
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { Client } = require('@googlemaps/google-maps-services-js');
 const app = express();
-
-// Google Maps client
-const mapsClient = new Client({});
 
 // middleware
 app.use(cors());
@@ -41,7 +37,7 @@ app.get('/cafes', async (req, res) => {
 });
 
 // Get nearby cafes (within 500 meters)
-app.post('/api/cafes/nearby', async (req, res) => {
+app.post('/cafes/nearby', async (req, res) => {
   try {
     const { lat, lng } = req.body;
     
