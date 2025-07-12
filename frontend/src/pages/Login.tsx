@@ -49,21 +49,23 @@ async function LoginValidation(values: Values) {
 
 const checkUsernameAvailability = async (username: string) => {
   try {
-    const response = await fetch(
-      `https://cafechronicles.vercel.app/api/auth/check-username?username=${encodeURIComponent(
-        username.trim().toLowerCase()
-      )}`,
-      {
-        method: "GET",
-      }
-    );
+    // Add cache-busting parameter to prevent stale responses
+    const cacheBuster = Date.now();
+    const url = `https://cafechronicles.vercel.app/api/auth/check-username?username=${encodeURIComponent(
+      username.trim().toLowerCase()
+    )}&_=${cacheBuster}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-cache", // Prevent browser caching
+    });
 
     if (!response.ok) throw new Error("Username check failed");
     const data = await response.json();
     return data.available;
   } catch (error) {
     console.error("Username check failed:", error);
-    return false; // Treat errors as unavailable
+    throw error; // Treat errors as unavailable
   }
 };
 
@@ -77,9 +79,15 @@ export async function SignupValidation(values: Values): Promise<Errors> {
   } else if (username.length < 3) {
     errors.username = "Username must be at least 3 characters";
   } else {
-    const isAvailable = await checkUsernameAvailability(username);
-    if (!isAvailable) {
-      errors.username = "Username is already taken";
+    try {
+      const isAvailable = await checkUsernameAvailability(username);
+      if (!isAvailable) {
+        errors.username = "Username is already taken";
+      }
+    } catch (error) {
+      // Add specific error handling
+      console.error('Username availability check failed:', error);
+      errors.username = "Username verification service unavailable. Please try again later.";
     }
   }
 
