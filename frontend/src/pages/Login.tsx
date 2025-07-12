@@ -50,7 +50,7 @@ async function LoginValidation(values: Values) {
 const checkUsernameAvailability = async (username: string) => {
   try {
     const response = await fetch(
-      `http://localhost:5002/api/auth/check-username?username=${encodeURIComponent(
+      `https://cafechronicles.vercel.app/api/auth/check-username?username=${encodeURIComponent(
         username.trim().toLowerCase()
       )}`,
       {
@@ -155,7 +155,7 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post("http://localhost:5002/api/auth/", normalizedValues, { withCredentials: true });
+      const response = await axios.post("https://cafechronicles.vercel.app/api/auth", normalizedValues, { withCredentials: true });
 
       if (response.data.message === "Login successful") {
         toast({
