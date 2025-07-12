@@ -59,7 +59,7 @@ const SignUp = () => {
         username: values.username.trim().toLowerCase(),
       };
       const response = await axios.post(
-        "http://localhost:5002/api/auth/signup",
+        "https://cafechronicles.vercel.app/api/auth/signup",
         normalizedValues
       );
 
