@@ -39,7 +39,7 @@ export const MapWithoutInput = () => {
   const [cafes, setCafes] = useState([]);
   const [userLocation, setUserLocation] = useState(null); // Start with null
   const [loadingLocation, setLoadingLocation] = useState(true);
-  const [loadingCafes, setLoadingCafes] = useState(true);
+  const [, setLoadingCafes] = useState(true);
 
   // Load cafes on mount
   useEffect(() => {
