@@ -1,6 +1,6 @@
 import { Flex, Text, Button } from "@chakra-ui/react";
 import { MapWithoutInput } from "../components/MapWithoutInput.tsx";
-import SidebarDrawer from "../components/Sidebar.tsx";
+import Sidebar from "../components/Sidebar.tsx";
 import { NavButton } from "../components/Buttons.tsx";
 
 const Dashboard = () => {
@@ -18,8 +18,7 @@ const Dashboard = () => {
         justifyContent="center"
         marginTop="25px"
       >
-        {/* TODO TIDY UP BUTTONS W CONST */}
-        <SidebarDrawer />
+        <Sidebar />
         <Button
           variant="link"
           fontFamily="afacad"

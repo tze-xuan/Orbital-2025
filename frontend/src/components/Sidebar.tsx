@@ -26,7 +26,7 @@ import {
 } from "react-icons/fi";
 import UserCard from "./UserCard";
 
-const CafeChroniclesSidebar = () => {
+const Sidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [activeItem, setActiveItem] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -241,4 +241,4 @@ const CafeChroniclesSidebar = () => {
   );
 };
 
-export default CafeChroniclesSidebar;
+export default Sidebar;
