@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Drawer,
   DrawerBody,
@@ -9,10 +10,9 @@ import {
   VStack,
   HStack,
   Text,
-  Avatar,
   Box,
-  Badge,
   IconButton,
+  Divider,
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import {
@@ -22,136 +22,218 @@ import {
   FiCoffee,
   FiUsers,
   FiEdit3,
-  FiUser,
+  FiSettings,
 } from "react-icons/fi";
+import UserCard from "./UserCard";
 
 const CafeChroniclesSidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [activeItem, setActiveItem] = useState(null);
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   const menuItems = [
-    { label: "My Passport", icon: FiBook },
-    { label: "My Routes", icon: FiMap },
-    { label: "Achievements", icon: FiAward, badge: 3 },
-    { label: "Discover Cafés", icon: FiCoffee, isActive: true },
-    { label: "Our Community", icon: FiUsers },
-    { label: "My Journal", icon: FiEdit3 },
+    {
+      label: "My Passport",
+      icon: FiBook,
+      route: "/passport",
+    },
+    {
+      label: "My Routes",
+      icon: FiMap,
+      route: "/routes",
+    },
+    {
+      label: "Achievements",
+      icon: FiAward,
+      route: "/achievements",
+    },
+    {
+      label: "Discover Cafés",
+      icon: FiCoffee,
+      route: "/cafes",
+    },
+    {
+      label: "Our Community",
+      icon: FiUsers,
+      route: "/community",
+    },
+    {
+      label: "My Journal",
+      icon: FiEdit3,
+      route: "/journal",
+    },
+    {
+      label: "My Account",
+      icon: FiEdit3,
+      route: "/account",
+    },
   ];
+
+  const bottomMenuItems = [
+    { label: "Settings", icon: FiSettings, description: "App preferences" },
+  ];
+
+  const handleMenuClick = (item) => {
+    setActiveItem(item.label);
+    // Auto-close drawer on mobile-like behavior
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
 
   return (
     <>
       <IconButton
         icon={<RxHamburgerMenu />}
         onClick={onOpen}
-        _hover={{ color: "#DC6739" }}
+        _hover={{
+          color: "#DC6739",
+          transform: "scale(1.1)",
+        }}
         color="#3E405B"
         aria-label="Open menu"
         size="lg"
-        variant="subtle"
+        variant="ghost"
+        transition="all 0.2s ease"
       />
 
-      <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="sm">
-        <DrawerOverlay />
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
+        <DrawerOverlay bg="rgba(0,0,0,0.4)" />
         <DrawerContent
           bg="linear-gradient(135deg, #E67E22 0%, #D35400 100%)"
-          color="white"
+          color="#FEF1C5"
+          boxShadow="2xl"
         >
           <DrawerCloseButton
+            p={6}
             size="lg"
             color="white"
-            _hover={{ bg: "rgba(255,255,255,0.2)" }}
+            _hover={{
+              transform: "rotate(90deg)",
+            }}
+            transition="all 0.2s ease"
           />
 
-          <DrawerHeader p={0}>
-            <Box p={6} pb={4}>
+          <DrawerHeader py={6}>
+            <Box py={6} pb={0}>
               <Text
-                fontSize="2xl"
+                fontSize="3xl"
                 fontFamily="DarumaDrop One"
                 fontWeight="bold"
                 mb={6}
                 letterSpacing="wide"
+                textAlign="center"
+                textShadow="2px 2px 4px rgba(0,0,0,0.3)"
               >
                 Café Chronicles
               </Text>
-
-              <HStack spacing={4} mb={4}>
-                <Avatar
-                  size="md"
-                  bg="rgba(255,255,255,0.3)"
-                  icon={<FiUser size="20px" />}
-                />
-                <VStack align="start" spacing={0}>
-                  <Text fontSize="md" fontFamily="Afacad" fontWeight="600">
-                    @wlwx_15
-                  </Text>
-                  <Text fontSize="sm" fontFamily="Afacad" opacity={0.9}>
-                    wlwx15@mail.com
-                  </Text>
-                </VStack>
-              </HStack>
+              <UserCard />
             </Box>
           </DrawerHeader>
 
-          <DrawerBody p={0}>
-            <VStack spacing={0} align="stretch">
-              {menuItems.map((item, index) => (
-                <Box
-                  key={index}
-                  px={6}
-                  py={4}
-                  cursor="pointer"
-                  bg={item.isActive ? "rgba(255,255,255,0.2)" : "transparent"}
-                  borderLeft={
-                    item.isActive
-                      ? "4px solid #F39C12"
-                      : "4px solid transparent"
-                  }
-                  _hover={{
-                    bg: "rgba(255,255,255,0.1)",
-                    transform: "translateX(4px)",
-                  }}
-                  transition="all 0.2s ease"
-                >
-                  <HStack spacing={4} justify="space-between">
+          <DrawerBody p={0} display="flex" flexDirection="column">
+            <VStack spacing={1} align="stretch" flex={1}>
+              {menuItems.map((item, index) => {
+                const isActive = activeItem === item.label;
+                const isHovered = hoveredItem === item.label;
+
+                return (
+                  <Box
+                    key={index}
+                    px={6}
+                    py={4}
+                    cursor="pointer"
+                    bg={
+                      isActive
+                        ? "rgba(255,255,255,0.25)"
+                        : isHovered
+                        ? "rgba(255,255,255,0.15)"
+                        : "transparent"
+                    }
+                    borderRight={
+                      isActive ? "2px solid rgba(255,255,255,0.3)" : "none"
+                    }
+                    _hover={{
+                      bg: "rgba(255,255,255,0.15)",
+                      transform: "translateX(8px)",
+                    }}
+                    transition="all 0.3s ease"
+                    onClick={() => handleMenuClick(item)}
+                    onMouseEnter={() => setHoveredItem(item.label)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    position="relative"
+                  >
+                    <HStack
+                      spacing={4}
+                      justify="space-between"
+                      as="a"
+                      href={item.route}
+                    >
+                      <HStack spacing={4}>
+                        <Box
+                          w="12px"
+                          h="12px"
+                          borderRadius="2px"
+                          transform={isActive ? "scale(1.2)" : "scale(1)"}
+                          transition="all 0.2s ease"
+                        ></Box>
+                        <item.icon size="18px" />
+                        <VStack align="start" spacing={0}>
+                          <Text
+                            fontSize="lg"
+                            fontFamily="Afacad"
+                            fontWeight={isActive ? "700" : "500"}
+                            textDecoration={isActive ? "underline" : "none"}
+                            textUnderlineOffset="4px"
+                          >
+                            {item.label}
+                          </Text>
+                          {isHovered && (
+                            <Text
+                              fontSize="xs"
+                              fontFamily="Afacad"
+                              opacity={0.8}
+                              mt={1}
+                            ></Text>
+                          )}
+                        </VStack>
+                      </HStack>
+                    </HStack>
+                  </Box>
+                );
+              })}
+            </VStack>
+
+            <Box mt="auto">
+              <Divider borderColor="rgba(255,255,255,0.3)" mb={2} />
+              <VStack spacing={1} align="stretch">
+                {bottomMenuItems.map((item, index) => (
+                  <Box
+                    key={index}
+                    px={6}
+                    py={4}
+                    cursor="pointer"
+                    _hover={{
+                      bg: "rgba(255,255,255,0.1)",
+                      transform: "translateX(4px)",
+                    }}
+                    transition="all 0.2s ease"
+                  >
                     <HStack spacing={4}>
-                      <Box
-                        w="12px"
-                        h="12px"
-                        bg="rgba(255,255,255,0.8)"
-                        borderRadius="2px"
-                      />
-                      <item.icon size="18px" />
+                      <item.icon size="16px" opacity={0.8} />
                       <Text
-                        fontSize="lg"
+                        fontSize="md"
                         fontFamily="Afacad"
-                        fontWeight={item.isActive ? "700" : "500"}
-                        textDecoration={item.isActive ? "underline" : "none"}
-                        textDecorationColor="#F39C12"
-                        textUnderlineOffset="4px"
+                        fontWeight="500"
+                        opacity={0.9}
                       >
                         {item.label}
                       </Text>
                     </HStack>
-                    {item.badge && (
-                      <Badge
-                        bg="#F39C12"
-                        color="white"
-                        borderRadius="full"
-                        fontSize="xs"
-                        fontFamily="Afacad"
-                        fontWeight="bold"
-                        minW="24px"
-                        h="24px"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </HStack>
-                </Box>
-              ))}
-            </VStack>
+                  </Box>
+                ))}
+              </VStack>
+            </Box>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
