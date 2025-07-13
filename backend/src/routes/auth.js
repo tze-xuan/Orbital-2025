@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const session = require("express-session");
 
 // (2) LOGIN ROUTE ------
-router.post("/", (req, res, next) => {
+router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
 
@@ -24,7 +24,7 @@ router.post("/", (req, res, next) => {
         delete req.session.returnTo;
         res.redirect(redirectUrl);
       })
-      
+
       return res.json({
         message: "Login successful",
         user: { id: user.id, username: user.username },
@@ -97,33 +97,59 @@ router.get("/check-username", async (req, res) => {
 });
 
 // (5) LOGOUT ROUTE ------
-router.post("/logout", checkAuthenticated, (req, res, next) => {
-  req.logOut(() => {
-    // Destroy session completely to prevent session fixation
+router.post("/logout", (req, res) => { 
+  const handleLogout = () => {
+    req.logout((err) => {
+      // Proceed to session destruction even if logout fails
+      destroySession(req, res);
+    });
+  };
+
+  // Handle session destruction
+  const destroySession = (req, res) => {
     req.session.destroy((err) => {
+      clearSessionCookie(res);
+      
       if (err) {
         console.error("Session destruction error:", err);
-        return res.redirect("/");
+        return res.status(500).json({ error: "Logout failed" });
       }
-      
-      // Clear session cookie
-      res.clearCookie("cafeuser-session"); 
-      res.redirect("/login?logout=success");
+
+      res.status(200).json({ message: "Logged out successfully" });
     });
-  });
+  };
+
+  // Clear client-side cookie
+  const clearSessionCookie = (res) => {
+    res.clearCookie("cafeuser-session", {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      expires: new Date(0)
+    });
+  };
+
+  // Check authentication state before attempting logout
+  if (req.isAuthenticated()) {
+    handleLogout();
+  } else {
+    // If not authenticated, still clear residual session data
+    destroySession(req, res);
+  }
 });
 
-// routes that require authentication (profile/homepage)
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    // isAuthenticated == whether user logged in
-    return next(); // user authenticated, proceeds to protected route
-  }
-  // User is not authenticated - redirect to login with a flash message
-  req.flash("error", "Please log in to access this page");
-  req.session.returnTo = req.originalUrl;
-  return res.redirect("/login");
-}
+// // routes that require authentication (profile/homepage)
+// function checkAuthenticated(req, res, next) {
+//   if (req.isAuthenticated()) {
+//     // isAuthenticated == whether user logged in
+//     return next(); // user authenticated, proceeds to protected route
+//   }
+//   // User is not authenticated - redirect to login with a flash message
+//   req.flash("error", "Please log in to access this page");
+//   req.session.returnTo = req.originalUrl;
+//   return res.redirect("/login");
+// }
 
 // (6) USER ROUTE ------
 // GET ALL USERS

@@ -14,6 +14,7 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const LogoutButton = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -24,12 +25,13 @@ const LogoutButton = () => {
   const handleLogout = async () => {
   setIsLoggingOut(true);
   try {
-    const response = await fetch('/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
+    const response = await axios.post(
+      "https://cafechronicles.vercel.app/api/auth/logout", 
+       null,  
+      { withCredentials: true }
+    );
     
-    if (response.ok) {
+    if (response.status === 200) {
       // Clear client-side user data
       localStorage.removeItem('user');
       sessionStorage.removeItem('sessionData');
@@ -45,11 +47,19 @@ const LogoutButton = () => {
       
       // Redirect to login
       navigate('/login');
-    } else {
-      throw new Error('Logout failed');
-    }
+    } 
   } catch (error) {
-    // Error handling
+    const errorMessage = error.response?.data?.error || 
+                         error.response?.data?.message || 
+                         "Could not log out";
+    
+    toast({
+      title: "Logout Failed",
+      description: errorMessage,
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    });
   } finally {
     setIsLoggingOut(false);
     onClose();
@@ -62,8 +72,8 @@ return (
         <Button
           onClick={onOpen}
           borderRadius="50px"
-          height="50px"
-          width="120px"
+          height="40px"
+          width="100px"
           fontSize="xl"
           fontFamily="afacad"
           bg="#3970B5"
