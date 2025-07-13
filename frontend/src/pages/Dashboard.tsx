@@ -1,7 +1,8 @@
-import { Flex, Text, Button } from "@chakra-ui/react";
+import { Flex, Text, Button, Spacer } from "@chakra-ui/react";
 import { MapWithoutInput } from "../components/MapWithoutInput.tsx";
 import Sidebar from "../components/Sidebar.tsx";
 import { NavButton } from "../components/Buttons.tsx";
+import LogoutButton from "../pages/Logout.tsx"
 
 const Dashboard = () => {
   return (
@@ -49,16 +50,8 @@ const Dashboard = () => {
         >
           <a href="/maps">Maps</a>
         </Button>
-        <NavButton
-          bgColor="#80B29B"
-          color="#FEF1C5"
-          borderRadius="50px"
-          border="1px"
-          shadow="md"
-          _hover={{ shadow: "dark-lg" }}
-        >
-          <a href="/login">Logout</a>
-        </NavButton>
+        <Spacer /> {/* Pushes logout button to the right */}
+        <LogoutButton />
       </Flex>
 
       <Text fontFamily="darumadrop" fontSize="8xl" color="#DC6739">

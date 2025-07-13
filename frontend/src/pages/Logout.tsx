@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-const LogoutButton = ({ user }) => {
+const LogoutButton = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
