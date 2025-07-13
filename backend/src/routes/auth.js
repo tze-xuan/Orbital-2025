@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require("../config/db");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
+const session = require("express-session");
 
 // (2) LOGIN ROUTE ------
 router.post("/", (req, res, next) => {
@@ -16,10 +17,19 @@ router.post("/", (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
 
+      // Regenerate session after login
+      req.session.regenerate((err) => {
+        if (err) return next(err);
+        const redirectUrl = req.session.returnTo || "/";
+        delete req.session.returnTo;
+        res.redirect(redirectUrl);
+      })
+      
       return res.json({
         message: "Login successful",
         user: { id: user.id, username: user.username },
       });
+
     });
   })(req, res, next);
 });
@@ -88,9 +98,18 @@ router.get("/check-username", async (req, res) => {
 
 // (5) LOGOUT ROUTE ------
 router.post("/logout", checkAuthenticated, (req, res, next) => {
-  req.logOut((err) => {
-    if (err) return next(err);
-    res.redirect("/");
+  req.logOut(() => {
+    // Destroy session completely to prevent session fixation
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+        return res.redirect("/");
+      }
+      
+      // Clear session cookie
+      res.clearCookie("cafeuser-session"); 
+      res.redirect("/login?logout=success");
+    });
   });
 });
 
@@ -102,6 +121,7 @@ function checkAuthenticated(req, res, next) {
   }
   // User is not authenticated - redirect to login with a flash message
   req.flash("error", "Please log in to access this page");
+  req.session.returnTo = req.originalUrl;
   return res.redirect("/login");
 }
 
