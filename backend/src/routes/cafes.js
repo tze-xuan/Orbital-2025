@@ -32,7 +32,7 @@ router.post("/", async (req, res) => {
     }
 
     // Save to database
-    const [result] = await pool.execute(
+    await pool.execute(
       "INSERT INTO cafes (cafeName, cafeLocation, lat, lng) VALUES (?, ?, ?, ?)",
       [cafeName, cafeLocation, lat, lng]
     );
@@ -94,9 +94,28 @@ router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { cafeName, cafeLocation } = req.body;
+
+    // First geocode the location
+    const geocodeResponse = await mapsClient.geocode({
+      params: {
+        address: cafeLocation,
+        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+      },
+    });
+
+    if (geocodeResponse.data.results.length === 0) {
+      console.error("Address not found");
+      return res.status(404).json({ error: "Address not found" });
+    }
+
+    const { lat, lng } = geocodeResponse.data.results[0].geometry.location;
+    if (!lat || !lng) {
+      return res.status(404).json({ error: "Coordinates has issue" });
+    }
+
     await pool.query(
-      "UPDATE cafes SET cafeName = ?, cafeLocation = ? WHERE id = ?",
-      [cafeName, cafeLocation, id]
+      "UPDATE cafes SET cafeName = ?, cafeLocation = ?, lat = ?, lng = ? WHERE id = ?",
+      [cafeName, cafeLocation, lat, lng, id]
     );
 
     // Fetch the updated record to return

@@ -25,6 +25,8 @@ export interface Errors {
   general?: string;
 }
 
+const AUTH_API_ROUTE = "https://cafechronicles.vercel.app/api/auth";
+
 async function LoginValidation(values: Values) {
   const errors: Errors = {};
 
@@ -158,8 +160,8 @@ const Login = () => {
     }
 
     const normalizedValues = {
-      username: values.username.trim().toLowerCase(), 
-      password: values.password
+      username: values.username.trim().toLowerCase(),
+      password: values.password,
     };
 
     try {
