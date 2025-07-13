@@ -20,7 +20,7 @@ router.post("/login", (req, res, next) => {
       // Regenerate session after login
       req.session.regenerate((err) => {
         if (err) return next(err);
-        const redirectUrl = req.session.returnTo || "/";
+        const redirectUrl = req.session.returnTo || "/login";
         delete req.session.returnTo;
         res.redirect(redirectUrl);
       })
@@ -121,7 +121,8 @@ router.post("/logout", (req, res) => {
 
   // Clear client-side cookie
   const clearSessionCookie = (res) => {
-    res.clearCookie("cafeuser-session", {
+    res.clearCookie("connect.sid", {
+      domain: process.env.COOKIE_DOMAIN || "localhost",
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
