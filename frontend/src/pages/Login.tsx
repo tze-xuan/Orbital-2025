@@ -25,8 +25,6 @@ export interface Errors {
   general?: string;
 }
 
-const AUTH_API_ROUTE = "https://cafechronicles.vercel.app/api/auth";
-
 async function LoginValidation(values: Values) {
   const errors: Errors = {};
 
@@ -88,8 +86,9 @@ export async function SignupValidation(values: Values): Promise<Errors> {
       }
     } catch (error) {
       // Add specific error handling
-      console.error('Username availability check failed:', error);
-      errors.username = "Username verification service unavailable. Please try again later.";
+      console.error("Username availability check failed:", error);
+      errors.username =
+        "Username verification service unavailable. Please try again later.";
     }
   }
 
@@ -165,7 +164,11 @@ const Login = () => {
     };
 
     try {
-      const response = await axios.post("https://cafechronicles.vercel.app/api/auth", normalizedValues, { withCredentials: true });
+      const response = await axios.post(
+        "https://cafechronicles.vercel.app/api/auth",
+        normalizedValues,
+        { withCredentials: true }
+      );
 
       if (response.data.message === "Login successful") {
         toast({
@@ -318,7 +321,6 @@ const Login = () => {
             />
             <InputRightElement width="5rem">
               <Button
-                bg="white"
                 color="#DC6739"
                 onClick={handleClick}
                 fontFamily="afacad"

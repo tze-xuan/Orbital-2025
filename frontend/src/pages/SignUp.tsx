@@ -209,7 +209,6 @@ const SignUp = () => {
             />
             <InputRightElement width="5rem">
               <Button
-                bg="white"
                 color="#DC6739"
                 onClick={handleClick}
                 fontFamily="afacad"

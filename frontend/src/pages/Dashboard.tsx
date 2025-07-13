@@ -5,7 +5,12 @@ import { NavButton } from "../components/Buttons.tsx";
 
 const Dashboard = () => {
   return (
-    <Flex justifyContent="center" alignItems="center" direction="column">
+    <Flex
+      justifyContent="center"
+      alignItems="center"
+      direction="column"
+      gap={2}
+    >
       <Flex
         direction="row"
         width="100vw"
