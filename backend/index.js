@@ -28,6 +28,13 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false, // won't resave session variable if nothing is changed
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      domain: process.env.COOKIE_DOMAIN || 'localhost',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: "lax"
+    },
   })
 );
 app.use(passport.initialize());

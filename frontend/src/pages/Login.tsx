@@ -165,7 +165,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://cafechronicles.vercel.app/api/auth",
+        "https://cafechronicles.vercel.app/api/auth/login",
         normalizedValues,
         { withCredentials: true }
       );
@@ -179,6 +179,7 @@ const Login = () => {
           isClosable: true,
           onCloseComplete: () => navigate("/dashboard"),
         });
+        
       } else {
         toast({
           title: "Login Failed",
