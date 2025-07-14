@@ -255,16 +255,17 @@ const Cafes = () => {
       </Flex>
 
       {/* Search Bar */}
-      <InputGroup width="70%" maxWidth="500px">
+      <InputGroup width="70%" maxWidth="500px" bg="white" borderRadius="100px">
         <InputLeftElement pointerEvents="none">
-          <SearchIcon color="gray.300" />
+          <SearchIcon color="#DC6739" />
         </InputLeftElement>
         <Input
           placeholder="Search cafés by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          borderRadius="25px"
-          focusBorderColor="#DC6739"
+          borderRadius="100px"
+          variant="flushed"
+          shadow="lg"
         />
       </InputGroup>
 
