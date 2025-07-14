@@ -1,85 +1,73 @@
 import {
   Button,
   Flex,
-  Text,
+  IconButton,
   useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  FormControl,
-  FormLabel,
-  Input,
-  Box,
-  FormErrorMessage,
   useToast,
-  InputGroup,
-  InputLeftElement,
 } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
+import LocationFilterModal, {
+  LocationResult,
+  calculateDistance,
+} from "../components/Cafes/LocationFilterModal.tsx";
+import { CafeType } from "../interfaces/CafeInterface.tsx";
+import { Bookmark } from "../interfaces/BookmarkInterface.tsx";
+import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
+import CafeList from "../components/Cafes/CafeList.tsx";
+import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
+import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
+import { FaHome } from "react-icons/fa";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
-  const [data, setData] = useState(null);
+  const BOOKMARK_API_ROUTE = "https://cafechronicles.vercel.app/api/bookmarks/";
+  const [data, setData] = useState<CafeType[] | null>(null);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userId, setUserId] = useState<number | null>(null);
+  const [showBookmarked, setShowBookmarked] = useState(false);
   const toast = useToast();
 
-  // Handle edit cafe info
+  // Location filter state - using LocationResult type
+  const [filterRadius, setFilterRadius] = useState(5);
+  const [userLocation, setUserLocation] = useState<LocationResult | null>(null);
+
+  // Modals
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const initialRef = React.useRef(null);
+  const {
+    isOpen: isLocationModalOpen,
+    onOpen: onLocationModalOpen,
+    onClose: onLocationModalClose,
+  } = useDisclosure();
+
+  // Edit cafe state
+  const initialRef = React.useRef<HTMLInputElement>(null);
   const [cafeName, setCafeName] = useState("");
   const [cafeLocation, setCafeLocation] = useState("");
   const [editedId, setEditedId] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [locationError, setLocationError] = useState("");
-  const [isValidatingAddress, setIsValidatingAddress] = useState(false);
+  const [isValidatingAddress] = useState(false);
 
-  // Helper Functions
-  const validateLocation = async (location: string) => {
-    if (!location.trim()) {
-      setLocationError("This field is required");
-      return false;
-    }
-
-    setIsValidatingAddress(true);
+  // Get user ID from authentication or session
+  const getUserId = async () => {
     try {
-      const response = await Axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          location
-        )}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
-      );
-
-      if (response.data.results.length === 0) {
-        setLocationError(
-          "Invalid address. Please copy the exact address from Google Maps."
-        );
-        return false;
+      const currentUser = localStorage.getItem("currentUser");
+      if (currentUser) {
+        const user = JSON.parse(currentUser);
+        setUserId(user.id);
+      } else {
+        setUserId(1);
       }
-
-      const { lat, lng } = response.data.results[0].geometry.location;
-      if (!lat || !lng) {
-        setLocationError("Invalid coordinates");
-        return false;
-      }
-
-      setLocationError("");
-      return true;
     } catch (error) {
-      console.error("Geocoding error:", error);
-      setLocationError("Error validating address");
-      return false;
-    } finally {
-      setIsValidatingAddress(false);
+      console.error("Error getting user ID:", error);
+      setUserId(1);
     }
   };
 
   const handleEdit = async () => {
-    if (!cafeName || !(await validateLocation(cafeLocation))) return;
+    if (!cafeName) return;
 
     try {
       await fetch(CAFE_API_ROUTE + editedId, {
@@ -101,7 +89,7 @@ const Cafes = () => {
         isClosable: true,
       });
     } catch (error) {
-      console.error("Error editing cafe:", error.response?.data);
+      console.error("Error editing cafe:", error);
       toast({
         title: "Error updating café",
         status: "error",
@@ -136,7 +124,7 @@ const Cafes = () => {
   };
 
   const handleAdd = async () => {
-    if (!cafeName || !(await validateLocation(cafeLocation))) return;
+    if (!cafeName) return;
 
     try {
       const response = await fetch(CAFE_API_ROUTE, {
@@ -170,52 +158,229 @@ const Cafes = () => {
   };
 
   const editIndex = (i: number) => {
-    setEditedId(Object(data)[i].id);
-    setCafeName(Object(data)[i].cafeName);
-    setCafeLocation(Object(data)[i].cafeLocation);
+    if (!data) return;
+    setEditedId(data[i].id.toString());
+    setCafeName(data[i].cafeName);
+    setCafeLocation(data[i].cafeLocation);
     setLocationError("");
   };
 
   const getData = async () => {
-    const response = await Axios.get(CAFE_API_ROUTE);
-    setData(response.data);
+    try {
+      const response = await Axios.get(CAFE_API_ROUTE);
+      console.log("API Response:", response.data); // Debug log
+      setData(response.data);
+    } catch (error) {
+      console.error("Error fetching cafes:", error);
+    }
   };
 
-  // Filter and sort cafes based on search term accuracy
-  const filteredCafes = data
-    ? Object(data)
-        .filter((cafe: any) =>
-          cafe.cafeName.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((cafe: any) => {
-          const name = cafe.cafeName.toLowerCase();
-          const search = searchTerm.toLowerCase();
+  const getBookmarks = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const response = await Axios.get(`${BOOKMARK_API_ROUTE}user/${userId}`);
+      setBookmarks(response.data);
+    } catch (error) {
+      console.error("Error fetching bookmarks:", error);
+    }
+  }, [userId]);
 
-          // Calculate relevance score
-          let score = 0;
+  const handleBookmark = async (cafeId: number) => {
+    if (!userId) return;
+    try {
+      const isBookmarked = bookmarks.some(
+        (bookmark: Bookmark) => bookmark.cafe_id === cafeId
+      );
 
-          // Exact match gets highest score
-          if (name === search) score = 1000;
-          // Starts with search term gets high score
-          else if (name.startsWith(search)) score = 100;
-          // Contains search term as whole word gets medium score
-          else if (name.includes(` ${search}`) || name.includes(`${search} `))
-            score = 50;
-          // Contains search term gets base score
-          else if (name.includes(search)) score = 10;
+      if (isBookmarked) {
+        await Axios.delete(
+          `${BOOKMARK_API_ROUTE}user/${userId}/cafe/${cafeId}`
+        );
+        toast({
+          title: "Bookmark removed",
+          status: "info",
+          duration: 2000,
+          isClosable: true,
+        });
+      } else {
+        await Axios.post(BOOKMARK_API_ROUTE, {
+          user_id: userId,
+          cafe_id: cafeId,
+        });
+        toast({
+          title: "Café bookmarked",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
 
-          // Bonus for shorter names (more specific matches)
-          score += Math.max(0, 50 - name.length);
+      await getBookmarks();
+    } catch (error) {
+      console.error("Error handling bookmark:", error);
+      toast({
+        title: "Error updating bookmark",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
-          return { ...cafe, relevanceScore: score };
-        })
-        .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
-    : [];
+  const isBookmarked = (cafeId: number) => {
+    return bookmarks.some((bookmark: Bookmark) => bookmark.cafe_id === cafeId);
+  };
 
-  // Fetch data on initial render
-  useEffect(() => {
-    getData();
+  const getBookmarkedCafes = (): CafeType[] => {
+    if (!data || !bookmarks.length) return [];
+
+    const bookmarkedCafeIds = bookmarks.map(
+      (bookmark: Bookmark) => bookmark.cafe_id
+    );
+    return data.filter((cafe: CafeType) => bookmarkedCafeIds.includes(cafe.id));
+  };
+
+  // Location filter handlers
+  const handleApplyLocationFilter = useCallback(
+    (location: LocationResult, radius: number) => {
+      console.log("Location filter applied:", location, "Radius:", radius);
+      setUserLocation(location);
+      setFilterRadius(radius);
+    },
+    []
+  );
+
+  const handleClearLocationFilter = useCallback(() => {
+    console.log("Location filter cleared");
+    setUserLocation(null);
   }, []);
+
+  // Enhanced filtering logic with better debugging
+  const filteredCafes = (() => {
+    const cafesToFilter = showBookmarked ? getBookmarkedCafes() : data || [];
+
+    console.log("Starting filter process:");
+    console.log("- Total cafes:", cafesToFilter.length);
+    console.log("- Search term:", searchTerm);
+    console.log("- User location:", userLocation);
+    console.log("- Filter radius:", filterRadius);
+
+    // First filter by search term if it exists
+    let filtered = searchTerm
+      ? cafesToFilter.filter((cafe: CafeType) => {
+          const nameMatch = cafe.cafeName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          const locationMatch = cafe.cafeLocation
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          return nameMatch || locationMatch;
+        })
+      : cafesToFilter;
+
+    console.log("- After search filter:", filtered.length);
+
+    // Then filter by location if userLocation is set
+    if (userLocation) {
+      console.log("Applying location filter...");
+
+      const locationFiltered = filtered.filter((cafe: CafeType) => {
+        console.log(`Checking cafe: ${cafe.cafeName}`);
+        console.log(`- Cafe location: ${cafe.cafeLocation}`);
+        console.log(`- Cafe coordinates: lat=${cafe.lat}, lng=${cafe.lng}`);
+
+        // Check if cafe has coordinates
+        if (!cafe.lat || !cafe.lng) {
+          console.log(
+            `- No coordinates for ${cafe.cafeName}, excluding from location filter`
+          );
+          return false;
+        }
+
+        const cafeLat = parseFloat(cafe.lat.toString());
+        const cafeLng = parseFloat(cafe.lng.toString());
+
+        console.log(`- Parsed coordinates: lat=${cafeLat}, lng=${cafeLng}`);
+
+        if (isNaN(cafeLat) || isNaN(cafeLng)) {
+          console.log(`- Invalid coordinates for ${cafe.cafeName}`);
+          return false;
+        }
+
+        const distance = calculateDistance(
+          userLocation.coordinates.lat,
+          userLocation.coordinates.lng,
+          cafeLat,
+          cafeLng
+        );
+
+        console.log(
+          `- Distance: ${distance.toFixed(2)}km (limit: ${filterRadius}km)`
+        );
+        console.log(`- Within range: ${distance <= filterRadius}`);
+
+        return distance <= filterRadius;
+      });
+
+      console.log("- After location filter:", locationFiltered.length);
+      filtered = locationFiltered;
+    }
+
+    // Sort by relevance
+    const sortedResults = filtered
+      .map((cafe: CafeType) => {
+        const name = cafe.cafeName.toLowerCase();
+        const location = cafe.cafeLocation.toLowerCase();
+        const search = searchTerm.toLowerCase();
+
+        let score = 0;
+
+        // Name matches
+        if (name === search) score = 1000;
+        else if (name.startsWith(search)) score = 100;
+        else if (name.includes(` ${search}`) || name.includes(`${search} `))
+          score = 50;
+        else if (name.includes(search)) score = 10;
+
+        // Location matches
+        if (location.includes(search)) score += 20;
+
+        // Prefer shorter names
+        score += Math.max(0, 50 - name.length);
+
+        // Boost score if within filter radius
+        if (userLocation && cafe.lat && cafe.lng) {
+          const distance = calculateDistance(
+            userLocation.coordinates.lat,
+            userLocation.coordinates.lng,
+            parseFloat(cafe.lat.toString()),
+            parseFloat(cafe.lng.toString())
+          );
+          if (distance <= filterRadius) {
+            score += 30;
+          }
+        }
+        return { ...cafe, relevanceScore: score };
+      })
+      .sort(
+        (a: CafeType, b: CafeType) =>
+          (b.relevanceScore || 0) - (a.relevanceScore || 0)
+      );
+
+    console.log("- Final filtered results:", sortedResults.length);
+    return sortedResults;
+  })();
+
+  useEffect(() => {
+    getUserId();
+  }, []);
+
+  useEffect(() => {
+    if (userId) {
+      getData();
+      getBookmarks();
+    }
+  }, [userId, getBookmarks]);
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCafeLocation(e.target.value);
@@ -224,225 +389,116 @@ const Cafes = () => {
     }
   };
 
-  const handleLocationBlur = async () => {
-    if (cafeLocation.trim()) {
-      await validateLocation(cafeLocation);
-    }
+  const handleEditIndex = (index: number) => {
+    editIndex(index);
+    onOpen();
+  };
+
+  const handleAddNewClick = () => {
+    setCafeName("");
+    setCafeLocation("");
+    setLocationError("");
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+    setCafeName("");
+    setCafeLocation("");
+    setLocationError("");
   };
 
   return (
-    <Flex alignItems="center" direction="column" gap="4svh" padding="6vh">
-      <Button
-        fontFamily="darumadrop"
-        fontSize="6xl"
-        color="#DC6739"
-        variant="plain"
-      >
-        <a href="/dashboard">Café Chronicles</a>
-      </Button>
-      <Flex
-        direction="row"
-        width="100vw"
-        gap="5vw"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Box height="4px" width="35vw" bgColor="#3e405b" />
-        <Text fontSize="6xl" fontWeight="black" fontFamily="afacad">
-          Cafés
-        </Text>
-        <Box height="4px" width="35vw" bgColor="#3e405b" />
-      </Flex>
+    <Flex alignItems="center" direction="column" gap={4} padding="6vh">
+      <IconButton
+        as="a"
+        href="/dashboard"
+        aria-label="Home"
+        icon={<FaHome />}
+        color="#3E405B"
+        variant="link"
+        size="lg"
+        _hover={{ color: "#DC6739" }}
+        m={2}
+      />
 
-      {/* Search Bar */}
-      <InputGroup width="70%" maxWidth="500px" bg="white" borderRadius="100px">
-        <InputLeftElement pointerEvents="none">
-          <SearchIcon color="#DC6739" />
-        </InputLeftElement>
-        <Input
-          placeholder="Search cafés by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          borderRadius="100px"
-          variant="flushed"
-          shadow="lg"
-        />
-      </InputGroup>
+      <CafeFilterSection
+        showBookmarked={showBookmarked}
+        setShowBookmarked={setShowBookmarked}
+        bookmarksCount={bookmarks.length}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        userLocation={userLocation}
+        filterRadius={filterRadius}
+        onLocationModalOpen={onLocationModalOpen}
+        onClearLocationFilter={handleClearLocationFilter}
+      />
 
-      {/* Flex Container */}
-      <Flex
-        alignItems="center"
-        maxH="50vh"
-        overflowY="auto"
-        scrollBehavior="smooth"
-        direction="column"
-        width="100%"
-        gap="2vh"
-        paddingBottom="18px"
-      >
-        {data == null ||
-          filteredCafes.map((cafe: any, index: any) => (
-            <Flex
-              key={index}
-              direction="column"
-              bgColor="white"
-              width="90%"
-              height="25vh"
-              alignItems="center"
-              justifyContent="center"
-              textAlign="center"
-              padding="2vh"
-              borderRadius="40px"
-              shadow="xl"
-            >
-              <Text fontSize="2xl" fontFamily="afacad" fontWeight="black">
-                {cafe.cafeName}
-              </Text>
-              <Text fontSize="lg" fontFamily="afacad">
-                {cafe.cafeLocation}
-              </Text>
-              <Button
-                background="#DC6739"
-                margin="2"
-                borderRadius="3xl"
-                width="15vw"
-                bgColor="#FFCE58"
-                onClick={() => {
-                  editIndex(Object(data).indexOf(cafe));
-                  onOpen();
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                background="#DC6739"
-                borderRadius="3xl"
-                width="15vw"
-                bgColor="#FFCE58"
-                onClick={async () => {
-                  await handleDelete(cafe.id);
-                }}
-              >
-                Delete
-              </Button>
-            </Flex>
-          ))}
-      </Flex>
+      <CafeList
+        cafes={filteredCafes}
+        showBookmarked={showBookmarked}
+        searchTerm={searchTerm}
+        userLocation={userLocation}
+        filterRadius={filterRadius}
+        isBookmarked={isBookmarked}
+        onBookmark={handleBookmark}
+        onEdit={handleEditIndex}
+        onDelete={handleDelete}
+      />
 
-      {/* Add New Cafe Button */}
-      <Button
-        background="#3970B5"
-        color="white"
-        borderRadius="50px"
-        width="70%"
-        onClick={() => {
-          setCafeName("");
-          setCafeLocation("");
-          setLocationError("");
-          setIsAddModalOpen(true);
-        }}
-      >
-        Add New
-      </Button>
+      {!showBookmarked && (
+        <Button
+          background="#3970B5"
+          color="white"
+          borderRadius="50px"
+          width="70%"
+          onClick={handleAddNewClick}
+        >
+          Add New
+        </Button>
+      )}
 
-      {/* Edit cafe popup */}
-      <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Café</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={!cafeName}>
-              <FormLabel>Café Name</FormLabel>
-              <Input
-                ref={initialRef}
-                placeholder={cafeName}
-                value={cafeName}
-                onChange={(e) => setCafeName(e.target.value)}
-              />
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
+      {/* Edit Modal */}
+      <CafeEditModal
+        isOpen={isOpen}
+        onClose={onClose}
+        initialRef={initialRef}
+        cafeName={cafeName}
+        setCafeName={setCafeName}
+        cafeLocation={cafeLocation}
+        setCafeLocation={setCafeLocation}
+        locationError={locationError}
+        isValidatingAddress={isValidatingAddress}
+        onSave={handleEdit}
+        handleLocationChange={handleLocationChange}
+      />
 
-            <FormControl mt={4} isRequired isInvalid={!!locationError}>
-              <FormLabel>Café Location</FormLabel>
-              <Input
-                placeholder={cafeLocation}
-                value={cafeLocation}
-                onChange={handleLocationChange}
-                onBlur={handleLocationBlur}
-              />
-              <FormErrorMessage>{locationError}</FormErrorMessage>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={handleEdit}
-              isLoading={isValidatingAddress}
-              isDisabled={!cafeName || !!locationError || isValidatingAddress}
-            >
-              Save
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Add Cafe Pop Up */}
-      <Modal
+      {/* Add Modal */}
+      <CafeAddModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setCafeName("");
-          setCafeLocation("");
-          setLocationError("");
-        }}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add New Café</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={!cafeName}>
-              <FormLabel>Café Name</FormLabel>
-              <Input
-                placeholder="Enter café name"
-                value={cafeName}
-                onChange={(e) => setCafeName(e.target.value)}
-              />
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
+        onClose={handleCloseAddModal}
+        cafeName={cafeName}
+        setCafeName={setCafeName}
+        cafeLocation={cafeLocation}
+        setCafeLocation={setCafeLocation}
+        locationError={locationError}
+        isValidatingAddress={isValidatingAddress}
+        onAdd={handleAdd}
+        handleLocationChange={handleLocationChange}
+      />
 
-            <FormControl mt={4} isRequired isInvalid={!!locationError}>
-              <FormLabel>Café Location</FormLabel>
-              <Input
-                placeholder="Enter café location"
-                value={cafeLocation}
-                onChange={handleLocationChange}
-                onBlur={handleLocationBlur}
-              />
-              <FormErrorMessage>{locationError}</FormErrorMessage>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={handleAdd}
-              isLoading={isValidatingAddress}
-              isDisabled={!cafeName || !!locationError || isValidatingAddress}
-            >
-              Add Café
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      {/* Location Filter Modal */}
+      <LocationFilterModal
+        isOpen={isLocationModalOpen}
+        onClose={onLocationModalClose}
+        filterRadius={filterRadius}
+        setFilterRadius={setFilterRadius}
+        userLocation={userLocation}
+        setUserLocation={setUserLocation}
+        onApplyFilter={handleApplyLocationFilter}
+        onClearFilter={handleClearLocationFilter}
+      />
     </Flex>
   );
 };
-
 export default Cafes;

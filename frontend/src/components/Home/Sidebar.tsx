@@ -24,7 +24,7 @@ import {
   FiEdit3,
   FiSettings,
 } from "react-icons/fi";
-import UserCard from "./UserCard";
+import UserCard from "./UserCard.tsx";
 
 const Sidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();

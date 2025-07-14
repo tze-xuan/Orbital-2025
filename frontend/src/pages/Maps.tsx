@@ -1,5 +1,5 @@
 import { Flex, Text } from "@chakra-ui/react";
-import { MapWithInput } from "../components/MapWithInput";
+import { MapWithInput } from "../components/Home/MapWithInput.tsx";
 
 const Maps = () => {
   return (
