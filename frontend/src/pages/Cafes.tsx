@@ -18,15 +18,23 @@ import {
   useToast,
   InputGroup,
   InputLeftElement,
+  IconButton,
+  Tooltip,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
-import React, { useState, useEffect } from "react";
+import { FaBookmark, FaRegBookmark } from "react-icons/fa";
+import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
+  const BOOKMARK_API_ROUTE = "https://cafechronicles.vercel.app/api/bookmarks/";
   const [data, setData] = useState(null);
+  const [bookmarks, setBookmarks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [showBookmarked, setShowBookmarked] = useState(false);
   const toast = useToast();
 
   // Handle edit cafe info
@@ -38,6 +46,26 @@ const Cafes = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
+
+  // Get user ID from authentication or session
+  const getUserId = async () => {
+    try {
+      // Replace this with your actual authentication logic
+      // For now, assuming you have a way to get the current user
+      // This could be from localStorage, session, or an auth API call
+      const currentUser = localStorage.getItem("currentUser");
+      if (currentUser) {
+        const user = JSON.parse(currentUser);
+        setUserId(user.id);
+      } else {
+        // Fallback to user ID 1 if no auth is set up yet
+        setUserId(1);
+      }
+    } catch (error) {
+      console.error("Error getting user ID:", error);
+      setUserId(1); // Fallback
+    }
+  };
 
   // Helper Functions
   const validateLocation = async (location: string) => {
@@ -181,41 +209,124 @@ const Cafes = () => {
     setData(response.data);
   };
 
+  const getBookmarks = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const response = await Axios.get(`${BOOKMARK_API_ROUTE}user/${userId}`);
+      setBookmarks(response.data);
+    } catch (error) {
+      console.error("Error fetching bookmarks:", error);
+    }
+  }, [userId]);
+
+  const handleBookmark = async (cafeId: number) => {
+    if (!userId) return;
+    try {
+      const isBookmarked = bookmarks.some(
+        (bookmark: any) => bookmark.cafe_id === cafeId
+      );
+
+      if (isBookmarked) {
+        // Remove bookmark
+        await Axios.delete(
+          `${BOOKMARK_API_ROUTE}user/${userId}/cafe/${cafeId}`
+        );
+        toast({
+          title: "Bookmark removed",
+          status: "info",
+          duration: 2000,
+          isClosable: true,
+        });
+      } else {
+        // Add bookmark
+        await Axios.post(BOOKMARK_API_ROUTE, {
+          user_id: userId,
+          cafe_id: cafeId,
+        });
+        toast({
+          title: "Café bookmarked",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+
+      await getBookmarks(); // Refresh bookmarks
+    } catch (error) {
+      console.error("Error handling bookmark:", error);
+      toast({
+        title: "Error updating bookmark",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const isBookmarked = (cafeId: number) => {
+    return bookmarks.some((bookmark: any) => bookmark.cafe_id === cafeId);
+  };
+
+  // Get bookmarked cafes with full cafe data
+  const getBookmarkedCafes = () => {
+    if (!data || !bookmarks.length) return [];
+
+    const bookmarkedCafeIds = bookmarks.map(
+      (bookmark: any) => bookmark.cafe_id
+    );
+    return Object(data).filter((cafe: any) =>
+      bookmarkedCafeIds.includes(cafe.id)
+    );
+  };
+
   // Filter and sort cafes based on search term accuracy
-  const filteredCafes = data
-    ? Object(data)
-        .filter((cafe: any) =>
-          cafe.cafeName.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .map((cafe: any) => {
-          const name = cafe.cafeName.toLowerCase();
-          const search = searchTerm.toLowerCase();
+  const filteredCafes = (() => {
+    const cafesToFilter = showBookmarked
+      ? getBookmarkedCafes()
+      : data
+      ? Object(data)
+      : [];
 
-          // Calculate relevance score
-          let score = 0;
+    return cafesToFilter
+      .filter((cafe: any) =>
+        cafe.cafeName.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .map((cafe: any) => {
+        const name = cafe.cafeName.toLowerCase();
+        const search = searchTerm.toLowerCase();
 
-          // Exact match gets highest score
-          if (name === search) score = 1000;
-          // Starts with search term gets high score
-          else if (name.startsWith(search)) score = 100;
-          // Contains search term as whole word gets medium score
-          else if (name.includes(` ${search}`) || name.includes(`${search} `))
-            score = 50;
-          // Contains search term gets base score
-          else if (name.includes(search)) score = 10;
+        // Calculate relevance score
+        let score = 0;
 
-          // Bonus for shorter names (more specific matches)
-          score += Math.max(0, 50 - name.length);
+        // Exact match gets highest score
+        if (name === search) score = 1000;
+        // Starts with search term gets high score
+        else if (name.startsWith(search)) score = 100;
+        // Contains search term as whole word gets medium score
+        else if (name.includes(` ${search}`) || name.includes(`${search} `))
+          score = 50;
+        // Contains search term gets base score
+        else if (name.includes(search)) score = 10;
 
-          return { ...cafe, relevanceScore: score };
-        })
-        .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
-    : [];
+        // Bonus for shorter names (more specific matches)
+        score += Math.max(0, 50 - name.length);
+
+        return { ...cafe, relevanceScore: score };
+      })
+      .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore);
+  })();
 
   // Fetch data on initial render
   useEffect(() => {
-    getData();
+    getUserId();
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      getData();
+      getBookmarks();
+    }
+  }, [userId, getBookmarks]);
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCafeLocation(e.target.value);
@@ -254,13 +365,39 @@ const Cafes = () => {
         <Box height="4px" width="35vw" bgColor="#3e405b" />
       </Flex>
 
+      {/* Toggle buttons for All Cafes / Bookmarked Cafes */}
+      <ButtonGroup variant="outline">
+        <Button
+          colorScheme={!showBookmarked ? "orange" : "gray"}
+          onClick={() => setShowBookmarked(false)}
+          bg={!showBookmarked ? "#DC6739" : "white"}
+          color={!showBookmarked ? "white" : "#DC6739"}
+          borderColor="#DC6739"
+          borderRadius="100px"
+        >
+          All Cafés
+        </Button>
+        <Button
+          colorScheme={showBookmarked ? "orange" : "gray"}
+          onClick={() => setShowBookmarked(true)}
+          bg={showBookmarked ? "#DC6739" : "white"}
+          color={showBookmarked ? "white" : "#DC6739"}
+          borderColor="#DC6739"
+          borderRadius="100px"
+        >
+          Bookmarked Cafés ({bookmarks.length})
+        </Button>
+      </ButtonGroup>
+
       {/* Search Bar */}
-      <InputGroup width="70%" maxWidth="500px" bg="white" borderRadius="100px">
+      <InputGroup width="100%" maxWidth="500px" bg="white" borderRadius="100px">
         <InputLeftElement pointerEvents="none">
           <SearchIcon color="#DC6739" />
         </InputLeftElement>
         <Input
-          placeholder="Search cafés by name..."
+          placeholder={`Search ${
+            showBookmarked ? "bookmarked " : ""
+          }cafés by name...`}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           borderRadius="100px"
@@ -268,6 +405,15 @@ const Cafes = () => {
           shadow="lg"
         />
       </InputGroup>
+
+      {/* Display message when no bookmarks */}
+      {showBookmarked && filteredCafes.length === 0 && (
+        <Text fontSize="lg" color="gray.500" textAlign="center">
+          {searchTerm
+            ? "No bookmarked cafés match your search."
+            : "No bookmarked cafés yet. Start exploring and bookmark your favorites!"}
+        </Text>
+      )}
 
       {/* Flex Container */}
       <Flex
@@ -294,7 +440,29 @@ const Cafes = () => {
               padding="2vh"
               borderRadius="40px"
               shadow="xl"
+              position="relative"
             >
+              {/* Bookmark button positioned in top-right corner */}
+              <Box position="absolute" top="15px" right="15px">
+                <Tooltip
+                  label={
+                    isBookmarked(cafe.id) ? "Remove bookmark" : "Bookmark café"
+                  }
+                  hasArrow
+                >
+                  <IconButton
+                    aria-label="Bookmark café"
+                    icon={
+                      isBookmarked(cafe.id) ? <FaBookmark /> : <FaRegBookmark />
+                    }
+                    size="sm"
+                    colorScheme={isBookmarked(cafe.id) ? "orange" : "gray"}
+                    variant="ghost"
+                    onClick={() => handleBookmark(cafe.id)}
+                  />
+                </Tooltip>
+              </Box>
+
               <Text fontSize="2xl" fontFamily="afacad" fontWeight="black">
                 {cafe.cafeName}
               </Text>
@@ -329,21 +497,23 @@ const Cafes = () => {
           ))}
       </Flex>
 
-      {/* Add New Cafe Button */}
-      <Button
-        background="#3970B5"
-        color="white"
-        borderRadius="50px"
-        width="70%"
-        onClick={() => {
-          setCafeName("");
-          setCafeLocation("");
-          setLocationError("");
-          setIsAddModalOpen(true);
-        }}
-      >
-        Add New
-      </Button>
+      {/* Add New Cafe Button - only show when not in bookmarks view */}
+      {!showBookmarked && (
+        <Button
+          background="#3970B5"
+          color="white"
+          borderRadius="50px"
+          width="70%"
+          onClick={() => {
+            setCafeName("");
+            setCafeLocation("");
+            setLocationError("");
+            setIsAddModalOpen(true);
+          }}
+        >
+          Add New
+        </Button>
+      )}
 
       {/* Edit cafe popup */}
       <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose}>
