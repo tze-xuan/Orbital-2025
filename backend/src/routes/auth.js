@@ -122,11 +122,13 @@ router.post("/logout", (req, res) => {
   // Clear client-side cookie
   const clearSessionCookie = (res) => {
     res.clearCookie("connect.sid", {
-      domain: process.env.COOKIE_DOMAIN || "localhost",
+      domain: process.env.NODE_ENV === 'production'
+      ? 'cafechronicles.vercel.app' 
+      : 'localhost',
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       expires: new Date(0)
     });
   };

@@ -30,10 +30,12 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.COOKIE_DOMAIN || 'localhost',
+      secure: true,
+      domain: process.env.NODE_ENV === 'production'
+      ? 'cafechronicles.vercel.app' 
+      : 'localhost',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "lax"
+      sameSite: "none"
     },
   })
 );
