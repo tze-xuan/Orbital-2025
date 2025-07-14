@@ -1,44 +1,23 @@
 import {
+  Box,
   Button,
   Flex,
   Text,
   useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  FormControl,
-  FormLabel,
-  Input,
-  Box,
-  FormErrorMessage,
   useToast,
-  InputGroup,
-  InputLeftElement,
-  IconButton,
-  Tooltip,
-  ButtonGroup,
-  Badge,
-  VStack,
 } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
-import {
-  FaBookmark,
-  FaRegBookmark,
-  FaLocationArrow,
-  FaTimes,
-} from "react-icons/fa";
 import React, { useState, useEffect, useCallback } from "react";
 import Axios from "axios";
 import LocationFilterModal, {
   LocationResult,
   calculateDistance,
-} from "../components/LocationFilterModal";
-import { CafeType } from "../interfaces/CafeInterface";
-import { Bookmark } from "../interfaces/BookmarkInterface";
+} from "../components/Cafes/LocationFilterModal.tsx";
+import { CafeType } from "../interfaces/CafeInterface.tsx";
+import { Bookmark } from "../interfaces/BookmarkInterface.tsx";
+import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
+import CafeList from "../components/Cafes/CafeList.tsx";
+import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
+import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -410,6 +389,25 @@ const Cafes = () => {
     }
   };
 
+  const handleEditIndex = (index: number) => {
+    editIndex(index);
+    onOpen();
+  };
+
+  const handleAddNewClick = () => {
+    setCafeName("");
+    setCafeLocation("");
+    setLocationError("");
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+    setCafeName("");
+    setCafeLocation("");
+    setLocationError("");
+  };
+
   return (
     <Flex alignItems="center" direction="column" gap="4vh" padding="6vh">
       <Button
@@ -434,203 +432,29 @@ const Cafes = () => {
         <Box height="4px" width="35vw" bgColor="#3e405b" />
       </Flex>
 
-      <ButtonGroup variant="outline">
-        <Button
-          colorScheme={!showBookmarked ? "orange" : "gray"}
-          onClick={() => setShowBookmarked(false)}
-          bg={!showBookmarked ? "#DC6739" : "white"}
-          color={!showBookmarked ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          borderRadius="100px"
-        >
-          All Cafés
-        </Button>
-        <Button
-          colorScheme={showBookmarked ? "orange" : "gray"}
-          onClick={() => setShowBookmarked(true)}
-          bg={showBookmarked ? "#DC6739" : "white"}
-          color={showBookmarked ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          borderRadius="100px"
-        >
-          Bookmarked Cafés ({bookmarks.length})
-        </Button>
-      </ButtonGroup>
+      <CafeFilterSection
+        showBookmarked={showBookmarked}
+        setShowBookmarked={setShowBookmarked}
+        bookmarksCount={bookmarks.length}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        userLocation={userLocation}
+        filterRadius={filterRadius}
+        onLocationModalOpen={onLocationModalOpen}
+        onClearLocationFilter={handleClearLocationFilter}
+      />
 
-      {/* Search Bar */}
-      <InputGroup width="100%" maxWidth="500px" bg="white" borderRadius="100px">
-        <InputLeftElement pointerEvents="none">
-          <SearchIcon color="#DC6739" />
-        </InputLeftElement>
-        <Input
-          placeholder={`Search ${
-            showBookmarked ? "bookmarked " : ""
-          }cafés by name...`}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          borderRadius="100px"
-          variant="flushed"
-          shadow="lg"
-        />
-      </InputGroup>
-
-      {/* Location Filter Section */}
-      <VStack spacing={2}>
-        <Button
-          leftIcon={<FaLocationArrow />}
-          onClick={onLocationModalOpen}
-          bg={userLocation ? "#DC6739" : "white"}
-          color={userLocation ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          border="1px solid"
-          borderRadius="100px"
-          _hover={{
-            bg: userLocation ? "#B8552E" : "#FFF5F5",
-          }}
-        >
-          {userLocation
-            ? `Filtering within ${filterRadius}km`
-            : "Filter by Location"}
-        </Button>
-
-        {userLocation && (
-          <Flex align="center" gap={2}>
-            <Badge
-              colorScheme="orange"
-              variant="subtle"
-              borderRadius="full"
-              px={3}
-              py={1}
-            >
-              📍 {userLocation.formattedAddress}
-            </Badge>
-            <IconButton
-              aria-label="Clear location filter"
-              icon={<FaTimes />}
-              size="sm"
-              variant="ghost"
-              colorScheme="gray"
-              onClick={handleClearLocationFilter}
-            />
-          </Flex>
-        )}
-      </VStack>
-
-      {/* Results Info */}
-      {(searchTerm || userLocation) && (
-        <Text fontSize="sm" color="gray.600" textAlign="center">
-          {filteredCafes.length} café{filteredCafes.length !== 1 ? "s" : ""}{" "}
-          found
-          {searchTerm && ` for "${searchTerm}"`}
-          {userLocation && ` within ${filterRadius}km`}
-        </Text>
-      )}
-
-      {showBookmarked && filteredCafes.length === 0 && (
-        <Text fontSize="lg" color="gray.500" textAlign="center">
-          {searchTerm || userLocation
-            ? "No bookmarked cafés match your filters."
-            : "No bookmarked cafés yet. Start exploring and bookmark your favorites!"}
-        </Text>
-      )}
-
-      {!showBookmarked && filteredCafes.length === 0 && (
-        <Text fontSize="lg" color="gray.500" textAlign="center">
-          {searchTerm || userLocation
-            ? "No cafés match your filters."
-            : "No cafés found."}
-        </Text>
-      )}
-
-      <Flex
-        alignItems="center"
-        maxH="50vh"
-        overflowY="auto"
-        scrollBehavior="smooth"
-        direction="column"
-        width="100%"
-        gap="2vh"
-        paddingBottom="18px"
-      >
-        {filteredCafes.map((cafe: CafeType, index: number) => (
-          <Flex
-            key={cafe.id}
-            direction="column"
-            bgColor="white"
-            width="90%"
-            height="25vh"
-            alignItems="center"
-            justifyContent="center"
-            textAlign="center"
-            padding="2vh"
-            borderRadius="40px"
-            shadow="xl"
-            position="relative"
-          >
-            <Box position="absolute" top="15px" right="15px">
-              <Tooltip
-                label={
-                  isBookmarked(cafe.id) ? "Remove bookmark" : "Bookmark café"
-                }
-                hasArrow
-              >
-                <IconButton
-                  aria-label="Bookmark café"
-                  icon={
-                    isBookmarked(cafe.id) ? <FaBookmark /> : <FaRegBookmark />
-                  }
-                  size="sm"
-                  colorScheme={isBookmarked(cafe.id) ? "orange" : "gray"}
-                  variant="ghost"
-                  onClick={() => handleBookmark(cafe.id)}
-                />
-              </Tooltip>
-            </Box>
-
-            <Text fontSize="2xl" fontFamily="afacad" fontWeight="black">
-              {cafe.cafeName}
-            </Text>
-            <Text fontSize="lg" fontFamily="afacad">
-              {cafe.cafeLocation}
-            </Text>
-            {userLocation && cafe.lat && cafe.lng && (
-              <Text fontSize="sm" color="gray.500">
-                {calculateDistance(
-                  userLocation.coordinates.lat,
-                  userLocation.coordinates.lng,
-                  parseFloat(cafe.lat.toString()),
-                  parseFloat(cafe.lng.toString())
-                ).toFixed(1)}{" "}
-                km away
-              </Text>
-            )}
-            <Button
-              background="#DC6739"
-              margin="2"
-              borderRadius="3xl"
-              width="15vw"
-              bgColor="#FFCE58"
-              onClick={() => {
-                editIndex(index);
-                onOpen();
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              background="#DC6739"
-              borderRadius="3xl"
-              width="15vw"
-              bgColor="#FFCE58"
-              onClick={async () => {
-                await handleDelete(cafe.id);
-              }}
-            >
-              Delete
-            </Button>
-          </Flex>
-        ))}
-      </Flex>
+      <CafeList
+        cafes={filteredCafes}
+        showBookmarked={showBookmarked}
+        searchTerm={searchTerm}
+        userLocation={userLocation}
+        filterRadius={filterRadius}
+        isBookmarked={isBookmarked}
+        onBookmark={handleBookmark}
+        onEdit={handleEditIndex}
+        onDelete={handleDelete}
+      />
 
       {!showBookmarked && (
         <Button
@@ -638,111 +462,40 @@ const Cafes = () => {
           color="white"
           borderRadius="50px"
           width="70%"
-          onClick={() => {
-            setCafeName("");
-            setCafeLocation("");
-            setLocationError("");
-            setIsAddModalOpen(true);
-          }}
+          onClick={handleAddNewClick}
         >
           Add New
         </Button>
       )}
 
       {/* Edit Modal */}
-      <Modal initialFocusRef={initialRef} isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Café</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={!cafeName}>
-              <FormLabel>Café Name</FormLabel>
-              <Input
-                ref={initialRef}
-                placeholder={cafeName}
-                value={cafeName}
-                onChange={(e) => setCafeName(e.target.value)}
-              />
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
-
-            <FormControl mt={4} isRequired isInvalid={!!locationError}>
-              <FormLabel>Café Location</FormLabel>
-              <Input
-                placeholder={cafeLocation}
-                value={cafeLocation}
-                onChange={handleLocationChange}
-              />
-              <FormErrorMessage>{locationError}</FormErrorMessage>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={handleEdit}
-              isLoading={isValidatingAddress}
-              isDisabled={!cafeName || !!locationError || isValidatingAddress}
-            >
-              Save
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <CafeEditModal
+        isOpen={isOpen}
+        onClose={onClose}
+        initialRef={initialRef}
+        cafeName={cafeName}
+        setCafeName={setCafeName}
+        cafeLocation={cafeLocation}
+        setCafeLocation={setCafeLocation}
+        locationError={locationError}
+        isValidatingAddress={isValidatingAddress}
+        onSave={handleEdit}
+        handleLocationChange={handleLocationChange}
+      />
 
       {/* Add Modal */}
-      <Modal
+      <CafeAddModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setCafeName("");
-          setCafeLocation("");
-          setLocationError("");
-        }}
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add New Café</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isRequired isInvalid={!cafeName}>
-              <FormLabel>Café Name</FormLabel>
-              <Input
-                placeholder="Enter café name"
-                value={cafeName}
-                onChange={(e) => setCafeName(e.target.value)}
-              />
-              <FormErrorMessage>This field is required</FormErrorMessage>
-            </FormControl>
-
-            <FormControl mt={4} isRequired isInvalid={!!locationError}>
-              <FormLabel>Café Location</FormLabel>
-              <Input
-                placeholder="Enter café location"
-                value={cafeLocation}
-                onChange={handleLocationChange}
-              />
-              <FormErrorMessage>{locationError}</FormErrorMessage>
-            </FormControl>
-          </ModalBody>
-
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={handleAdd}
-              isLoading={isValidatingAddress}
-              isDisabled={!cafeName || !!locationError || isValidatingAddress}
-            >
-              Add Café
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+        onClose={handleCloseAddModal}
+        cafeName={cafeName}
+        setCafeName={setCafeName}
+        cafeLocation={cafeLocation}
+        setCafeLocation={setCafeLocation}
+        locationError={locationError}
+        isValidatingAddress={isValidatingAddress}
+        onAdd={handleAdd}
+        handleLocationChange={handleLocationChange}
+      />
 
       {/* Location Filter Modal */}
       <LocationFilterModal
@@ -758,5 +511,4 @@ const Cafes = () => {
     </Flex>
   );
 };
-
 export default Cafes;
