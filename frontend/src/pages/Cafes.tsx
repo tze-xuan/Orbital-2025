@@ -16,13 +16,17 @@ import {
   Box,
   FormErrorMessage,
   useToast,
+  InputGroup,
+  InputLeftElement,
 } from "@chakra-ui/react";
+import { SearchIcon } from "@chakra-ui/icons";
 import React, { useState, useEffect } from "react";
 import Axios from "axios";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
   const [data, setData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const toast = useToast();
 
   // Handle edit cafe info
@@ -177,6 +181,37 @@ const Cafes = () => {
     setData(response.data);
   };
 
+  // Filter and sort cafes based on search term accuracy
+  const filteredCafes = data
+    ? Object(data)
+        .filter((cafe: any) =>
+          cafe.cafeName.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map((cafe: any) => {
+          const name = cafe.cafeName.toLowerCase();
+          const search = searchTerm.toLowerCase();
+
+          // Calculate relevance score
+          let score = 0;
+
+          // Exact match gets highest score
+          if (name === search) score = 1000;
+          // Starts with search term gets high score
+          else if (name.startsWith(search)) score = 100;
+          // Contains search term as whole word gets medium score
+          else if (name.includes(` ${search}`) || name.includes(`${search} `))
+            score = 50;
+          // Contains search term gets base score
+          else if (name.includes(search)) score = 10;
+
+          // Bonus for shorter names (more specific matches)
+          score += Math.max(0, 50 - name.length);
+
+          return { ...cafe, relevanceScore: score };
+        })
+        .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
+    : [];
+
   // Fetch data on initial render
   useEffect(() => {
     getData();
@@ -219,6 +254,21 @@ const Cafes = () => {
         <Box height="4px" width="35vw" bgColor="#3e405b" />
       </Flex>
 
+      {/* Search Bar */}
+      <InputGroup width="70%" maxWidth="500px" bg="white" borderRadius="100px">
+        <InputLeftElement pointerEvents="none">
+          <SearchIcon color="#DC6739" />
+        </InputLeftElement>
+        <Input
+          placeholder="Search cafés by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          borderRadius="100px"
+          variant="flushed"
+          shadow="lg"
+        />
+      </InputGroup>
+
       {/* Flex Container */}
       <Flex
         alignItems="center"
@@ -231,7 +281,7 @@ const Cafes = () => {
         paddingBottom="18px"
       >
         {data == null ||
-          Object(data).map((cafe: any, index: any) => (
+          filteredCafes.map((cafe: any, index: any) => (
             <Flex
               key={index}
               direction="column"
@@ -258,7 +308,7 @@ const Cafes = () => {
                 width="15vw"
                 bgColor="#FFCE58"
                 onClick={() => {
-                  editIndex(index);
+                  editIndex(Object(data).indexOf(cafe));
                   onOpen();
                 }}
               >
