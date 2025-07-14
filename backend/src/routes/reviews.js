@@ -2,10 +2,25 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
+const cors = require('cors');
+app.use(cors());
+
+const authenticate = (req, res, next) => {
+  if (!req.user) { // Assuming you have authentication setup
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+};
+
 // REVIEW & RATING ROUTE ------
 // Submit review
 app.post('/reviews', async (req, res) => {
-  const { user_id, cafe_id, rating, comment } = req.body;
+  const { username, cafeName, rating, comment } = req.body;
+
+  // Validate input
+  if (!cafeName || !rating || !comment) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
 
   // Validate rating (1-5)
   if (rating < 1 || rating > 5) {
@@ -14,8 +29,8 @@ app.post('/reviews', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO reviews (user_id, cafe_id, rating, comment) VALUES (?, ?, ?, ?)',
-      [user_id, cafe_id, rating, comment]
+      'INSERT INTO reviews (username, cafeName, rating, comment) VALUES (?, ?, ?, ?)',
+      [username, cafeName, rating, comment]
     );
     res.status(201).json({message: 'Review submitted'});
   } catch(err) {

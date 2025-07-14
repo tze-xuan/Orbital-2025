@@ -52,6 +52,7 @@ app.get("/", (req, res) => {
 app.use("/api/cafes", require("./src/routes/cafes"));
 app.use("/api/auth", require("./src/routes/auth"));
 app.use("/api/locations", require("./src/routes/map"));
+app.use("/api/reviews", require("./src/routes/reviews"));
 
 // Start Server
 const PORT = process.env.PORT || 5002;
