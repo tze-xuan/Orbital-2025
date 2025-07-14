@@ -45,7 +45,7 @@ const CafeList = ({
     <>
       {/* Results Info */}
       {showResultsInfo && (
-        <Text fontSize="sm" color="gray.600" textAlign="center">
+        <Text fontSize="md" fontFamily="afacad" textAlign="center">
           {cafes.length} café{cafes.length !== 1 ? "s" : ""} found
           {searchTerm && ` for "${searchTerm}"`}
           {userLocation && ` within ${filterRadius}km`}
@@ -54,7 +54,7 @@ const CafeList = ({
 
       {/* Empty State */}
       {cafes.length === 0 && (
-        <Text fontSize="lg" color="gray.500" textAlign="center">
+        <Text fontSize="lg" fontFamily="afacad" textAlign="center">
           {getEmptyStateMessage()}
         </Text>
       )}
@@ -62,7 +62,7 @@ const CafeList = ({
       {/* Cafe Cards */}
       <Flex
         alignItems="center"
-        maxH="50vh"
+        maxH="60vh"
         overflowY="auto"
         scrollBehavior="smooth"
         direction="column"

@@ -1,8 +1,7 @@
 import {
-  Box,
   Button,
   Flex,
-  Text,
+  IconButton,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
@@ -18,6 +17,7 @@ import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
 import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
+import { FaHome } from "react-icons/fa";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -409,28 +409,18 @@ const Cafes = () => {
   };
 
   return (
-    <Flex alignItems="center" direction="column" gap="4vh" padding="6vh">
-      <Button
-        fontFamily="darumadrop"
-        fontSize="6xl"
-        color="#DC6739"
-        variant="plain"
-      >
-        <a href="/dashboard">Café Chronicles</a>
-      </Button>
-      <Flex
-        direction="row"
-        width="100vw"
-        gap="5vw"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Box height="4px" width="35vw" bgColor="#3e405b" />
-        <Text fontSize="6xl" fontWeight="black" fontFamily="afacad">
-          Cafés
-        </Text>
-        <Box height="4px" width="35vw" bgColor="#3e405b" />
-      </Flex>
+    <Flex alignItems="center" direction="column" gap={4} padding="6vh">
+      <IconButton
+        as="a"
+        href="/dashboard"
+        aria-label="Home"
+        icon={<FaHome />}
+        color="#3E405B"
+        variant="link"
+        size="lg"
+        _hover={{ color: "#DC6739" }}
+        m={2}
+      />
 
       <CafeFilterSection
         showBookmarked={showBookmarked}

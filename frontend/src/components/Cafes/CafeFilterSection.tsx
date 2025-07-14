@@ -7,7 +7,6 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  VStack,
 } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { FaLocationArrow, FaTimes } from "react-icons/fa";
@@ -40,85 +39,91 @@ const CafeFilterSection = ({
     <>
       <ButtonGroup variant="outline">
         <Button
-          colorScheme={!showBookmarked ? "orange" : "gray"}
+          colorScheme={!showBookmarked ? "#DC6739" : "white"}
           onClick={() => setShowBookmarked(false)}
           bg={!showBookmarked ? "#DC6739" : "white"}
           color={!showBookmarked ? "white" : "#DC6739"}
           borderColor="#DC6739"
           borderRadius="100px"
+          fontFamily="afacad"
         >
           All Cafés
         </Button>
         <Button
-          colorScheme={showBookmarked ? "orange" : "gray"}
+          colorScheme={showBookmarked ? "#DC6739" : "white"}
           onClick={() => setShowBookmarked(true)}
           bg={showBookmarked ? "#DC6739" : "white"}
           color={showBookmarked ? "white" : "#DC6739"}
           borderColor="#DC6739"
           borderRadius="100px"
+          fontFamily="afacad"
         >
           Bookmarked Cafés ({bookmarksCount})
         </Button>
       </ButtonGroup>
 
-      {/* Search Bar */}
-      <InputGroup width="100%" maxWidth="500px" bg="white" borderRadius="100px">
-        <InputLeftElement pointerEvents="none">
-          <SearchIcon color="#DC6739" />
-        </InputLeftElement>
-        <Input
-          placeholder={`Search ${
-            showBookmarked ? "bookmarked " : ""
-          }cafés by name...`}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          borderRadius="100px"
-          variant="flushed"
-          shadow="lg"
-        />
-      </InputGroup>
+      <Flex dir="horizontal" gap={4}>
+        {/* Search Bar */}
+        <InputGroup maxWidth="500px">
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="#DC6739" />
+          </InputLeftElement>
+          <Input
+            placeholder={`Search ${
+              showBookmarked ? "bookmarked " : ""
+            }cafés by name...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            borderRadius="100px"
+            height="40px"
+            width="500px"
+            bg="white"
+            variant="flushed"
+            shadow="lg"
+            fontFamily="afacad"
+          />
+        </InputGroup>
 
-      {/* Location Filter Section */}
-      <VStack spacing={2}>
-        <Button
-          leftIcon={<FaLocationArrow />}
-          onClick={onLocationModalOpen}
-          bg={userLocation ? "#DC6739" : "white"}
-          color={userLocation ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          border="1px solid"
-          borderRadius="100px"
-          _hover={{
-            bg: userLocation ? "#B8552E" : "#FFF5F5",
-          }}
-        >
-          {userLocation
-            ? `Filtering within ${filterRadius}km`
-            : "Filter by Location"}
-        </Button>
+        {/* Location Filter Section */}
+        <Flex direction="row" gap={4}>
+          <Button
+            leftIcon={<FaLocationArrow />}
+            onClick={onLocationModalOpen}
+            bg={!userLocation ? "#80B29B" : "white"}
+            color={!userLocation ? "white" : "#80B29B"}
+            borderRadius="100px"
+            _hover={{
+              bg: !userLocation ? "#6F9D88" : "#EEEEEE",
+              color: !userLocation ? "#EEEEEE" : "#6F9D88",
+            }}
+            fontFamily="afacad"
+          >
+            {userLocation ? `Filtering within ${filterRadius}km` : "Filter"}
+          </Button>
 
-        {userLocation && (
-          <Flex align="center" gap={2}>
-            <Badge
-              colorScheme="orange"
-              variant="subtle"
-              borderRadius="full"
-              px={3}
-              py={1}
-            >
-              📍 {userLocation.formattedAddress}
-            </Badge>
-            <IconButton
-              aria-label="Clear location filter"
-              icon={<FaTimes />}
-              size="sm"
-              variant="ghost"
-              colorScheme="gray"
-              onClick={onClearLocationFilter}
-            />
-          </Flex>
-        )}
-      </VStack>
+          {userLocation && (
+            <Flex align="center" gap={1}>
+              <Badge
+                colorScheme="#80B29B"
+                variant="subtle"
+                borderRadius="full"
+                fontFamily="afacad"
+                fontSize="sm"
+              >
+                📍 {userLocation.formattedAddress}
+              </Badge>
+              <IconButton
+                aria-label="Clear location filter"
+                icon={<FaTimes />}
+                size="sm"
+                variant="subtle"
+                onClick={onClearLocationFilter}
+                fontFamily="afacad"
+              />
+            </Flex>
+          )}
+        </Flex>
+      </Flex>
     </>
   );
 };
