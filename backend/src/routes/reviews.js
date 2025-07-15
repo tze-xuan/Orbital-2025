@@ -6,7 +6,7 @@ const cors = require('cors');
 app.use(cors());
 
 const authenticate = (req, res, next) => {
-  if (!req.user) { // Assuming you have authentication setup
+  if (!req.user) { 
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
@@ -14,11 +14,12 @@ const authenticate = (req, res, next) => {
 
 // REVIEW & RATING ROUTE ------
 // Submit review
-app.post('/reviews', async (req, res) => {
-  const { username, cafeName, rating, comment } = req.body;
+app.post('/submit', authenticate, async (req, res) => {
+  const { cafe_id, rating, comment } = req.body; 
+  const user_id = req.user.id;
 
   // Validate input
-  if (!cafeName || !rating || !comment) {
+  if (!cafe_id || !rating || !comment) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -29,8 +30,8 @@ app.post('/reviews', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO reviews (username, cafeName, rating, comment) VALUES (?, ?, ?, ?)',
-      [username, cafeName, rating, comment]
+      'INSERT INTO reviews (user_id, cafe_id, rating, comment) VALUES (?, ?, ?, ?)',
+      [user_id, cafe_id, rating, comment]
     );
     res.status(201).json({message: 'Review submitted'});
   } catch(err) {
@@ -39,7 +40,7 @@ app.post('/reviews', async (req, res) => {
 });
 
 // Get reviews
-app.get('/:cafe_id/reviews', async(req, res) => {
+app.get('/:cafe_id', async(req, res) => {
   const cafe_id = req.params.cafe_id;
 
   try {

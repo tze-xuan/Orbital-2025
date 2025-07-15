@@ -66,6 +66,14 @@ const ReviewForm = ({ cafeId, onSubmitCallback }) => {
     }
   };
 
+  function getSafeErrorMessage(error: unknown): string {
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return (error as { message?: unknown }).message as string || 'Validation error';
+  }
+  return 'Validation error';
+}
+
   return (
     <>
       {/* Add Review Button - To be placed in Cafe Card */}
@@ -123,7 +131,11 @@ const ReviewForm = ({ cafeId, onSubmitCallback }) => {
                   })}
                 />
                 <FormErrorMessage>
-                  {errors.comment && errors.comment.message}
+                    {errors.comment && (
+                        <span className="error">
+                            {getSafeErrorMessage(errors.comment)}
+                        </span>
+                    )}
                 </FormErrorMessage>
               </FormControl>
             </ModalBody>
