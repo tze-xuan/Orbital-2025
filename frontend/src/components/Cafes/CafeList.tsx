@@ -39,6 +39,7 @@ const CafeList = ({
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
   const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
@@ -52,9 +53,16 @@ const CafeList = ({
       : "No cafés found.";
   };
 
-  const handleReviewSubmit = (reviewData: ReviewData) => {
-    onReviewSubmit(reviewData);
-    setReviewingCafeId(null);
+  const handleReviewSubmit = async (reviewData: ReviewData) => {
+    setIsSubmittingReview(true);
+    try {
+      await onReviewSubmit(reviewData); // Wait for submission to complete
+      setReviewingCafeId(null); // Only close form on success
+    } catch (error) {
+      console.error("Review submission failed:", error);
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   return (
@@ -109,6 +117,7 @@ const CafeList = ({
                 comment: reviewData.comment
               });
             }}
+            isSubmitting={isSubmittingReview}
             />
           </React.Fragment>
         ))}

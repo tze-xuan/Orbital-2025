@@ -459,22 +459,6 @@ const Cafes = () => {
         onReviewSubmit={handleReviewSubmit}
       />
 
-      {/* Global Add Review Button */}
-        {filteredCafes.length > 0 && (
-          <ReviewForm 
-            cafe_id={filteredCafes[0].id} // Default to first cafe
-            onSubmitCallback={() => {
-              toast({
-                title: "Review Added!",
-                description: "Your review has been submitted",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-              });
-            }}
-          />
-        )}
-
       {!showBookmarked && (
         <Button
           background="#3970B5"
