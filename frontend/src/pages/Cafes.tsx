@@ -18,6 +18,7 @@ import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
+import ReviewForm from "../components/Cafes/Review.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -49,6 +50,9 @@ const Cafes = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [isValidatingAddress] = useState(false);
+
+  // Add state for reviews
+  const [reviews, setReviews] = useState({});
 
   // Get user ID from authentication or session
   const getUserId = async () => {
@@ -155,6 +159,14 @@ const Cafes = () => {
         isClosable: true,
       });
     }
+  };
+
+    // Review submission handler
+  const handleReviewSubmit = (review) => {
+    setReviews(prev => ({
+      ...prev,
+      [review.cafeId]: [...(prev[review.cafeId] || []), review]
+    }));
   };
 
   const editIndex = (i: number) => {
@@ -444,7 +456,24 @@ const Cafes = () => {
         onBookmark={handleBookmark}
         onEdit={handleEditIndex}
         onDelete={handleDelete}
+        onReviewSubmit={handleReviewSubmit}
       />
+
+      {/* Global Add Review Button */}
+        {filteredCafes.length > 0 && (
+          <ReviewForm 
+            cafe_id={filteredCafes[0].id} // Default to first cafe
+            onSubmitCallback={() => {
+              toast({
+                title: "Review Added!",
+                description: "Your review has been submitted",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
+            }}
+          />
+        )}
 
       {!showBookmarked && (
         <Button

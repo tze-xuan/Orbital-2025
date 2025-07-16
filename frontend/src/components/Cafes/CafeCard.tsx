@@ -11,6 +11,7 @@ interface CafeCardProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
+  onReviewSubmit: (reviewId: number) => void;
 }
 
 const CafeCard = ({
@@ -21,6 +22,7 @@ const CafeCard = ({
   onBookmark,
   onEdit,
   onDelete,
+  onReviewSubmit
 }: CafeCardProps) => {
   return (
     <Flex

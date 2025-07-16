@@ -33,7 +33,7 @@ const CafeFilterSection = ({
   userLocation,
   filterRadius,
   onLocationModalOpen,
-  onClearLocationFilter,
+  onClearLocationFilter
 }: CafeFilterSectionProps) => {
   return (
     <>

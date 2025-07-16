@@ -20,7 +20,12 @@ import {
 import { StarIcon } from "@chakra-ui/icons";
 import { useForm } from "react-hook-form";
 
-const ReviewForm = ({ cafeId, onSubmitCallback }) => {
+interface ReviewFormProps {
+  cafe_id: number;
+  onSubmitCallback: (reviewData: { rating: number; comment: string }) => void;
+}
+
+const ReviewForm = ({ cafe_id, onSubmitCallback }) => {
   const [rating, setRating] = useState(0);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -40,6 +45,14 @@ const ReviewForm = ({ cafeId, onSubmitCallback }) => {
       // In a real app, you would send:
       // { cafeId, rating, comment: data.comment }
       
+      // Pass the review data to the callback
+    if (onSubmitCallback) {
+      onSubmitCallback({
+        rating,
+        comment: data.comment
+      });
+    }
+    
       // Success feedback
       toast({
         title: "Review Submitted!",

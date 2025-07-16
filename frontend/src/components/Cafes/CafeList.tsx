@@ -1,7 +1,15 @@
+import React, { useState } from "react";
 import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
+import ReviewForm from "./Review.tsx";
+
+interface ReviewData {
+  cafeId: number;
+  rating: number;
+  comment: string;
+}
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -13,6 +21,7 @@ interface CafeListProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
+  onReviewSubmit: (review: ReviewData) => void;
 }
 
 const CafeList = ({
@@ -25,9 +34,11 @@ const CafeList = ({
   onBookmark,
   onEdit,
   onDelete,
+  onReviewSubmit,
 }: CafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
+  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
@@ -39,6 +50,11 @@ const CafeList = ({
     return searchTerm || userLocation
       ? "No cafés match your filters."
       : "No cafés found.";
+  };
+
+  const handleReviewSubmit = (reviewData: ReviewData) => {
+    onReviewSubmit(reviewData);
+    setReviewingCafeId(null);
   };
 
   return (
@@ -71,8 +87,8 @@ const CafeList = ({
         paddingBottom="18px"
       >
         {cafes.map((cafe: CafeType, index: number) => (
-          <CafeCard
-            key={cafe.id}
+          <React.Fragment key={cafe.id}>
+            <CafeCard
             cafe={cafe}
             index={index}
             isBookmarked={isBookmarked(cafe.id)}
@@ -80,7 +96,21 @@ const CafeList = ({
             onBookmark={onBookmark}
             onEdit={onEdit}
             onDelete={onDelete}
-          />
+            onReviewSubmit={() => setReviewingCafeId(cafe.id)}
+            />
+            
+            {/* Add Review Button for each cafe - Fixed */}
+            <ReviewForm 
+            cafe_id={cafe.id} 
+            onSubmitCallback={(reviewData) => {
+              handleReviewSubmit({
+                cafeId: cafe.id,
+                rating: reviewData.rating,
+                comment: reviewData.comment
+              });
+            }}
+            />
+          </React.Fragment>
         ))}
       </Flex>
     </>
