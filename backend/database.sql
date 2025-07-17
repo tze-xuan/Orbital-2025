@@ -14,6 +14,12 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE sessions (
+  session_id VARCHAR(128) NOT NULL PRIMARY KEY,
+  expires INT(11) NOT NULL,
+  data TEXT
+);
+
 CREATE TABLE reviews (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,

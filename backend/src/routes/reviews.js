@@ -5,22 +5,21 @@ const pool = require("../config/db");
 const cors = require('cors');
 app.use(cors());
 
-const authenticate = (req, res, next) => {
-  if (!req.user) { 
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
+const isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) return next();
+  res.status(401).json({ error: 'Unauthorized' });
 };
+
 
 // REVIEW & RATING ROUTE ------
 // Submit review
-app.post('/submit', authenticate, async (req, res) => {
+app.post('/submit', isAuthenticated, async (req, res) => {
   const { cafe_id, rating, comment } = req.body; 
   const user_id = req.user.id;
 
-  // Validate input
-  if (!cafe_id || !rating || !comment) {
-    return res.status(400).json({ error: 'Missing required fields' });
+  // Validate all fields exist
+  if (![cafe_id, rating, comment].every(Boolean)) {
+    return res.status(400).json({ error: 'All fields are required' });
   }
 
   // Validate rating (1-5)
@@ -29,7 +28,7 @@ app.post('/submit', authenticate, async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    await pool.query(
       'INSERT INTO reviews (user_id, cafe_id, rating, comment) VALUES (?, ?, ?, ?)',
       [user_id, cafe_id, rating, comment]
     );

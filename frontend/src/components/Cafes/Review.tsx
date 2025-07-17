@@ -27,7 +27,7 @@ interface ReviewFormProps {
   isSubmitting: boolean;
 }
 
-const ReviewForm = ({ cafe_id, onSubmitCallback, isSubmitting = false }: ReviewFormProps) => {
+const ReviewForm = ({ isSubmitting = false }: ReviewFormProps) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -54,16 +54,18 @@ const ReviewForm = ({ cafe_id, onSubmitCallback, isSubmitting = false }: ReviewF
     }
     
     try {
-      await axios.post('https://cafechronicles.vercel.app/api/reviews/submit', { 
+      await axios.post('https://cafechronicles.vercel.app/api/reviews/submit', {
       rating, 
       comment 
-    });
+    },
+    { withCredentials: true }
+  );
 
     // Clear form on successful submission
     setRating(0);
     setComment('');
     
-    // Optional success notification
+    // Success notification
     toast({
       title: "Review Submitted!",
       description: "Thank you for your feedback",
@@ -143,8 +145,8 @@ function getSafeErrorMessage(error: unknown): string {
                   {...register("comment", { 
                     required: "Review text is required",
                     minLength: { 
-                      value: 20, 
-                      message: "Please write at least 20 characters" 
+                      value: 10, 
+                      message: "Please write at least 10 characters" 
                     }
                   })}
                 />

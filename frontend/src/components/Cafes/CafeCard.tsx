@@ -1,7 +1,24 @@
-import { Box, Button, Flex, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import { useState } from "react";
+import {
+  Button,
+  Flex,
+  Text, 
+  Tooltip,
+  IconButton,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Box
+} from "@chakra-ui/react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
+import CafeReviews from "./ReviewList.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;
@@ -22,8 +39,31 @@ const CafeCard = ({
   onBookmark,
   onEdit,
   onDelete,
-  onReviewSubmit
 }: CafeCardProps) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
+
+  const handleViewReviews = () => {
+    setCafeIdForReviews(cafe.id);
+    onOpen();
+  };
+
+  const renderStars = (rating) => {
+    return (
+      <Flex>
+        {[...Array(5)].map((_, i) => (
+          <Text 
+            key={i} 
+            color={i < rating ? 'orange.400' : 'gray.300'}
+            fontSize="lg"
+          >
+            ★
+          </Text>
+        ))}
+      </Flex>
+    );
+  }
+
   return (
     <Flex
       direction="column"
@@ -60,6 +100,16 @@ const CafeCard = ({
       <Text fontSize="lg" fontFamily="afacad">
         {cafe.cafeLocation}
       </Text>
+
+      {cafe.averageRating > 0 && (
+            <Flex align="center" mb={2}>
+              {renderStars(Math.round(cafe.averageRating))}
+              <Text ml={2} fontSize="sm">
+                ({cafe.reviewCount} reviews)
+              </Text>
+            </Flex>
+          )}
+
       {userLocation && cafe.lat && cafe.lng && (
         <Text fontSize="sm" color="gray.500">
           {calculateDistance(
@@ -90,6 +140,38 @@ const CafeCard = ({
       >
         Delete
       </Button>
+
+      <Button 
+        background="#DC6739"
+        margin="2"
+        borderRadius="3xl"
+        width="15vw"
+        bgColor="#FFCE58"
+        onClick={handleViewReviews}
+        >
+          Reviews
+        </Button>
+
+    {/* Reviews Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            Reviews for {cafe.cafeName}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {cafeIdForReviews && (
+              <CafeReviews cafeId={cafeIdForReviews} />
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 };
