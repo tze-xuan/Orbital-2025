@@ -26,6 +26,7 @@ CREATE TABLE reviews (
     cafe_id INT,
     rating TINYINT UNSIGNED NOT NULL
     CHECK (rating BETWEEN 1 AND 5),
+    avgPricePerPax DECIMAL(10,2) DEFAULT NULL,
     comment TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),

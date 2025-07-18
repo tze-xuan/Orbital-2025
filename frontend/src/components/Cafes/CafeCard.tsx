@@ -15,6 +15,7 @@ import {
   ModalFooter,
   Box
 } from "@chakra-ui/react";
+import { StarIcon } from "@chakra-ui/icons";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
@@ -28,7 +29,7 @@ interface CafeCardProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
-  onReviewSubmit: (reviewId: number) => void;
+  onReviewSubmit: () => void;
 }
 
 const CafeCard = ({
@@ -39,6 +40,7 @@ const CafeCard = ({
   onBookmark,
   onEdit,
   onDelete,
+  onReviewSubmit
 }: CafeCardProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
@@ -151,6 +153,17 @@ const CafeCard = ({
         >
           Reviews
         </Button>
+
+       <Button
+        onClick={onReviewSubmit}
+        size="sm"
+        colorScheme="orange"
+        variant="outline"
+        mt={2}
+        leftIcon={<StarIcon />}
+      >
+        Add Review
+      </Button>
 
     {/* Reviews Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">

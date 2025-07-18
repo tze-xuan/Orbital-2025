@@ -9,6 +9,7 @@ interface ReviewData {
   cafeId: number;
   rating: number;
   comment: string;
+  avgPricePerPax: number;
 }
 
 interface CafeListProps {
@@ -53,17 +54,29 @@ const CafeList = ({
       : "No cafés found.";
   };
 
-  const handleReviewSubmit = async (reviewData: ReviewData) => {
+  const handleReviewSubmit = async (reviewData: { 
+    rating: number; 
+    comment: string;
+    avgPricePerPax: number;
+  }) => {
+    if (!reviewingCafeId) return;
+    
     setIsSubmittingReview(true);
     try {
-      await onReviewSubmit(reviewData); // Wait for submission to complete
-      setReviewingCafeId(null); // Only close form on success
+      await onReviewSubmit({
+        cafeId: reviewingCafeId,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        avgPricePerPax: reviewData.avgPricePerPax
+      });
+      setReviewingCafeId(null); // Close form on success
     } catch (error) {
       console.error("Review submission failed:", error);
     } finally {
       setIsSubmittingReview(false);
     }
   };
+
 
   return (
     <>
@@ -95,8 +108,8 @@ const CafeList = ({
         paddingBottom="18px"
       >
         {cafes.map((cafe: CafeType, index: number) => (
-          <React.Fragment key={cafe.id}>
-            <CafeCard
+          <CafeCard
+            key={cafe.id}
             cafe={cafe}
             index={index}
             isBookmarked={isBookmarked(cafe.id)}
@@ -105,23 +118,20 @@ const CafeList = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onReviewSubmit={() => setReviewingCafeId(cafe.id)}
-            />
-            
-            {/* Add Review Button for each cafe - Fixed */}
-            <ReviewForm 
-            cafe_id={cafe.id} 
-            onSubmitCallback={(reviewData) => {
-              handleReviewSubmit({
-                cafeId: cafe.id,
-                rating: reviewData.rating,
-                comment: reviewData.comment
-              });
-            }}
-            isSubmitting={isSubmittingReview}
-            />
-          </React.Fragment>
+          />
         ))}
       </Flex>
+
+      {/* Single Review Form (conditionally rendered) */}
+      {reviewingCafeId && (
+        <ReviewForm 
+          cafe_id={reviewingCafeId}
+          isOpen={!!reviewingCafeId}
+          onClose={() => setReviewingCafeId(null)}
+          onSubmitCallback={handleReviewSubmit}
+          isSubmitting={isSubmittingReview}
+        />
+      )}
     </>
   );
 };

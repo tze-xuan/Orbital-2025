@@ -76,6 +76,22 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     });
   };
 
+  // Calculate average price per person
+  const avgPrice = reviews.length > 0 
+    ? reviews.reduce((sum, review) => sum + (review.avgPricePerPax || 0), 0) / reviews.length
+    : 0;
+
+  // Calculate price range
+  const priceRange = reviews.reduce((acc, review) => {
+    if (review.avgPricePerPax === null || review.avgPricePerPax === undefined) return acc;
+    return {
+      min: Math.min(acc.min, review.avgPricePerPax),
+      max: Math.max(acc.max, review.avgPricePerPax)
+    };
+  }, { min: Infinity, max: -Infinity });
+
+  const hasPriceData = priceRange.min !== Infinity && priceRange.max !== -Infinity;
+
   if (isLoading) {
     return (
       <Box p={5}>
@@ -87,6 +103,7 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
               <Box>
                 <Skeleton height="20px" width="120px" mb={2} />
                 <Skeleton height="15px" width="80px" />
+                <Skeleton height="40px" width="180px" borderRadius="lg" />
               </Box>
             </Flex>
             <SkeletonText mt="4" noOfLines={4} spacing="4" />
@@ -112,7 +129,19 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
           >
             Average Rating: {averageRating.toFixed(1)} / 5
           </Badge>
-        </Flex>
+      
+      {hasPriceData && (
+          <Badge colorScheme="green" fontSize="xl" p={3} borderRadius="lg">
+            Price Range: SGD {priceRange.min.toFixed(2)} - {priceRange.max.toFixed(2)}
+          </Badge>
+      )}
+        
+      {avgPrice > 0 && (
+          <Badge colorScheme="blue" fontSize="xl" p={3} borderRadius="lg">
+            Avg. Price: SGD {avgPrice.toFixed(2)}
+          </Badge>
+      )}
+      </Flex>
       )}
 
       {reviews.length === 0 ? (
@@ -157,5 +186,6 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     </Box>
   );
 };
+
 
 export default CafeReviews;

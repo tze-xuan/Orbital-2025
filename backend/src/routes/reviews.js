@@ -2,9 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
-const cors = require('cors');
-app.use(cors());
-
 const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   res.status(401).json({ error: 'Unauthorized' });
@@ -14,11 +11,11 @@ const isAuthenticated = (req, res, next) => {
 // REVIEW & RATING ROUTE ------
 // Submit review
 app.post('/submit', isAuthenticated, async (req, res) => {
-  const { cafe_id, rating, comment } = req.body; 
+  const { cafe_id, rating, comment, avgPricePerPax } = req.body; 
   const user_id = req.user.id;
 
   // Validate all fields exist
-  if (![cafe_id, rating, comment].every(Boolean)) {
+  if (![cafe_id, rating, comment, avgPricePerPax].every(Boolean)) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -29,8 +26,8 @@ app.post('/submit', isAuthenticated, async (req, res) => {
 
   try {
     await pool.query(
-      'INSERT INTO reviews (user_id, cafe_id, rating, comment) VALUES (?, ?, ?, ?)',
-      [user_id, cafe_id, rating, comment]
+      'INSERT INTO reviews (user_id, cafe_id, rating, comment, avgPricePerPax) VALUES (?, ?, ?, ?, ?)',
+      [user_id, cafe_id, rating, comment, avgPricePerPax]
     );
     res.status(201).json({message: 'Review submitted'});
   } catch(err) {
@@ -52,13 +49,24 @@ app.get('/:cafe_id', async(req, res) => {
       [cafe_id]
     );
 
-    const avgRating = await db.query(
-      'SELECT AVG(rating) AS average FROM reviews WHERE cafe_id = ?'
+    const [avgResult] = await pool.query(
+      `SELECT 
+         AVG(rating) AS averageRating,
+         MIN(avgPricePerPax) AS minPrice,
+         MAX(avgPricePerPax) AS maxPrice,
+         AVG(avgPricePerPax) AS avgPrice
+       FROM reviews 
+       WHERE cafe_id = ?`,
       [cafe_id]
     );
-
+    
+    const { averageRating, minPrice, maxPrice, avgPrice } = avgResult[0];
+    
     res.json({
-      averageRating: avgRating[0].average || 0,
+      averageRating: averageRating || 0,
+      priceRange: minPrice && maxPrice ? 
+        { min: minPrice, max: maxPrice } : null,
+      avgPrice: avgPrice || null,
       reviews
     });
 
