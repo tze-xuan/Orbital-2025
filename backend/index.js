@@ -15,6 +15,7 @@ initialize(passport);
 app.use(
   cors({
     origin: [
+      "https://cafechronicles.vercel.app", // Production
       "https://orbital-5c65d.web.app", // Production
       "http://localhost:3000", // Development
     ],
@@ -51,11 +52,13 @@ app.use(
       httpOnly: true,
       secure: true,
       domain: process.env.NODE_ENV === 'production'
-      ? 'cafechronicles.vercel.app' 
-      : 'localhost',
+      ? '.vercel.app' 
+      : undefined,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "none"
+      sameSite: "none",
+      path: '/',
     },
+    proxy: true
   })
 );
 app.use(passport.initialize());

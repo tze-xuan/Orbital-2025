@@ -71,7 +71,7 @@ const CafeCard = ({
       direction="column"
       bgColor="white"
       width="90%"
-      height="25vh"
+      height="30vh"
       alignItems="center"
       justifyContent="center"
       textAlign="center"
@@ -143,27 +143,33 @@ const CafeCard = ({
         Delete
       </Button>
 
+      <Flex 
+        alignItems="center" 
+        justifyContent="flex-start" 
+        mt={2}  
+        gap={2}  
+      >
       <Button 
         background="#DC6739"
-        margin="2"
         borderRadius="3xl"
-        width="15vw"
+        width="10vw"
         bgColor="#FFCE58"
         onClick={handleViewReviews}
-        >
-          Reviews
-        </Button>
+      >
+      Reviews
+      </Button>
 
-       <Button
+      <Button
         onClick={onReviewSubmit}
+        borderRadius="3xl"
         size="sm"
         colorScheme="orange"
         variant="outline"
-        mt={2}
         leftIcon={<StarIcon />}
       >
-        Add Review
-      </Button>
+      Add Review
+     </Button>
+    </Flex>
 
     {/* Reviews Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">

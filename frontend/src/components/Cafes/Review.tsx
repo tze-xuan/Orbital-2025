@@ -34,7 +34,6 @@ const ReviewForm = ({
   cafe_id, 
   isOpen, 
   onClose, 
-  onSubmitCallback, 
   isSubmitting 
 }: ReviewFormProps) => {
   const [rating, setRating] = useState(0);
@@ -79,7 +78,7 @@ const ReviewForm = ({
       await axios.post('https://cafechronicles.vercel.app/api/reviews/submit', {
       cafe_id,
       rating, 
-      comment,
+      comment: comment || null,
       avgPricePerPax: priceValue
     },
     { withCredentials: true }
@@ -89,6 +88,7 @@ const ReviewForm = ({
     setRating(0);
     setComment('');
     setAvgPricePerPax('');
+    onClose(); 
     
     // Success notification
     toast({
@@ -99,11 +99,14 @@ const ReviewForm = ({
       isClosable: true,
     });
 
-  } catch (error) {
+  } catch (error: any) {
     // Error handling
+    const errorMessage = error.response?.data?.error || 
+                         error.message || 
+                         'Failed to submit review';
     toast({
       title: "Submission Failed",
-      description: "There was an error submitting your review",
+      description: errorMessage,
       status: "error",
       duration: 3000,
       isClosable: true,

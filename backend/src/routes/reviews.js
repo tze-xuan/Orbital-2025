@@ -3,25 +3,49 @@ const router = express.Router();
 const pool = require("../config/db");
 
 const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) return next();
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  
+  if (req.isAuthenticated()) {
+    console.log('User authenticated via passport');
+    return next();
+  }
+  
+  if (req.session?.passport?.user) {
+    console.log('User authenticated via session data');
+    req.user = { id: req.session.passport.user };
+    return next();
+  }
+  
+  console.warn('Unauthorized access attempt');
   res.status(401).json({ error: 'Unauthorized' });
 };
 
+router.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // REVIEW & RATING ROUTE ------
 // Submit review
-app.post('/submit', isAuthenticated, async (req, res) => {
-  const { cafe_id, rating, comment, avgPricePerPax } = req.body; 
+router.post('/submit', isAuthenticated, async (req, res) => {
+  const { cafe_id, rating, avgPricePerPax } = req.body; 
+  const comment = req.body.comment || null;
   const user_id = req.user.id;
 
-  // Validate all fields exist
-  if (![cafe_id, rating, comment, avgPricePerPax].every(Boolean)) {
-    return res.status(400).json({ error: 'All fields are required' });
+  // Validate required fields
+  if (!cafe_id || !rating || avgPricePerPax === undefined) {
+    return res.status(400).json({ error: 'Cafe ID, rating and price are required' });
   }
 
   // Validate rating (1-5)
   if (rating < 1 || rating > 5) {
     return res.status(400).json({ error: 'Invalid rating' });
+  }
+
+  // Validate price
+  if (isNaN(avgPricePerPax) || avgPricePerPax < 0) {
+    return res.status(400).json({ error: 'Invalid price value' });
   }
 
   try {
@@ -36,7 +60,7 @@ app.post('/submit', isAuthenticated, async (req, res) => {
 });
 
 // Get reviews
-app.get('/:cafe_id', async(req, res) => {
+router.get('/cafe/:cafe_id', async(req, res) => {
   const cafe_id = req.params.cafe_id;
 
   try {
@@ -74,3 +98,5 @@ app.get('/:cafe_id', async(req, res) => {
     res.status(500).json({error: 'Database error'});
   }
 })
+
+module.exports = router;
