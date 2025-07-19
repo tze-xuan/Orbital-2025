@@ -7,6 +7,7 @@ const methodOverride = require("method-override");
 const cors = require("cors");
 const passport = require("passport");
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 
 const initialize = require("./src/config/passport-config.js");
 initialize(passport);
@@ -50,12 +51,10 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
-      domain: process.env.NODE_ENV === 'production'
-      ? '.vercel.app' 
-      : undefined,
+      secure: isProduction,
+      domain: isProduction ? 'cafechronicles.vercel.app' : undefined,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: "none",
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
     },
     proxy: true
