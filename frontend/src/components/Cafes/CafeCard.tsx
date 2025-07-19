@@ -44,7 +44,6 @@ const CafeCard = ({
 }: CafeCardProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
-
   const handleViewReviews = () => {
     setCafeIdForReviews(cafe.id);
     onOpen();
@@ -167,11 +166,11 @@ const CafeCard = ({
         variant="outline"
         leftIcon={<StarIcon />}
       >
-      Add Review
+      Leave Review
      </Button>
     </Flex>
 
-    {/* Reviews Modal */}
+    {/* Reviews List Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
@@ -22,7 +22,7 @@ interface CafeListProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
-  onReviewSubmit: (review: ReviewData) => void;
+  onReviewSubmit: (cafeId: number) => void;
 }
 
 const CafeList = ({
@@ -53,30 +53,6 @@ const CafeList = ({
       ? "No cafés match your filters."
       : "No cafés found.";
   };
-
-  const handleReviewSubmit = async (reviewData: { 
-    rating: number; 
-    comment: string;
-    avgPricePerPax: number;
-  }) => {
-    if (!reviewingCafeId) return;
-    
-    setIsSubmittingReview(true);
-    try {
-      await onReviewSubmit({
-        cafeId: reviewingCafeId,
-        rating: reviewData.rating,
-        comment: reviewData.comment,
-        avgPricePerPax: reviewData.avgPricePerPax
-      });
-      setReviewingCafeId(null); // Close form on success
-    } catch (error) {
-      console.error("Review submission failed:", error);
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
 
   return (
     <>
@@ -118,20 +94,10 @@ const CafeList = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onReviewSubmit={() => setReviewingCafeId(cafe.id)}
+            
           />
         ))}
       </Flex>
-
-      {/* Single Review Form (conditionally rendered) */}
-      {reviewingCafeId && (
-        <ReviewForm 
-          cafe_id={reviewingCafeId}
-          isOpen={!!reviewingCafeId}
-          onClose={() => setReviewingCafeId(null)}
-          onSubmitCallback={handleReviewSubmit}
-          isSubmitting={isSubmittingReview}
-        />
-      )}
     </>
   );
 };

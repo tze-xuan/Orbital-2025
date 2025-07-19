@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Button,
   Flex,
@@ -26,69 +25,53 @@ interface ReviewFormProps {
   cafe_id: number;
   isOpen: boolean;
   onClose: () => void;
-  onSubmitCallback: (reviewData: { rating: number; comment: string; avgPricePerPax: number; }) => void;
-  isSubmitting: boolean;
+  onSubmitSuccess: () => void;
 }
+
+type ReviewFormData = {
+  rating: number;
+  comment?: string;
+  avgPricePerPax: number;
+};
 
 const ReviewForm = ({ 
   cafe_id, 
   isOpen, 
   onClose, 
-  isSubmitting 
+  onSubmitSuccess 
 }: ReviewFormProps) => {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [avgPricePerPax, setAvgPricePerPax] = useState<string>('');
-  const toast = useToast();
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors },
-    reset
-  } = useForm();
-
-  const submitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (rating === 0) {
-      toast({
-        title: "Rating required",
-        description: "Please select a rating before submitting",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+const toast = useToast();
+const { 
+  register, 
+  handleSubmit, 
+  setValue,
+  watch,
+  formState: { errors, isSubmitting },
+  reset
+  } = useForm<ReviewFormData>({
+    defaultValues: {
+      rating: 0,
+      avgPricePerPax: 0
     }
+  });
 
-    // Validate average price
-    const priceValue = parseFloat(avgPricePerPax);
-    if (isNaN(priceValue)) {
-      toast({
-        title: "Price required",
-        description: "Please enter a valid average price",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    
+const ratingValue = watch('rating');
+const submitReview = async (formData: ReviewFormData) => {
+
     try {
       await axios.post('https://cafechronicles.vercel.app/api/reviews/submit', {
       cafe_id,
-      rating, 
-      comment: comment || null,
-      avgPricePerPax: priceValue
+      rating: formData.rating,
+      comment: formData.comment || null,
+      avgPricePerPax: formData.avgPricePerPax
     },
     { withCredentials: true }
   );
 
     // Clear form on successful submission
-    setRating(0);
-    setComment('');
-    setAvgPricePerPax('');
-    onClose(); 
+    reset();
+    onClose();
+    onSubmitSuccess(); 
     
     // Success notification
     toast({
@@ -114,92 +97,100 @@ const ReviewForm = ({
   }
 };
 
-function getSafeErrorMessage(error: unknown): string {
-  if (typeof error === 'string') return error;
-  if (error && typeof error === 'object' && 'message' in error) {
-    return (error as { message?: unknown }).message as string || 'Validation error';
-  }
-  return 'Validation error';
-}
+  const setRating = (value: number) => {
+      setValue("rating", value);
+  };
 
   return (
-    <form onSubmit={submitReview}>
-      {/* Review Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Review Cafe</ModalHeader>
-          <ModalCloseButton />
-          
-          <form onSubmit={handleSubmit(submitReview)}>
-            <ModalBody>
-              <FormControl isInvalid={!!errors.comment}>
-                <Flex mb={4} justify="center">
-                  {[...Array(5)].map((_, i) => (
-                    <IconButton
-                      key={i}
-                      aria-label={`Rate ${i+1} stars`}
-                      icon={<StarIcon />}
-                      variant="ghost"
-                      color={i < rating ? "yellow.400" : "gray.300"}
-                      fontSize="3xl"
-                      onClick={() => setRating(i+1)}
-                      _hover={{ color: "yellow.500" }}
-                      size="lg"
-                    />
-                  ))}
-                </Flex>
-                
-                <Box bg="gray.50" p={3} borderRadius="md" mb={3}>
-                  Your rating: {rating}/5
-                </Box>
-
-                {/* Average Price Per Pax Field */}
-                <FormControl mb={4} isInvalid={!!errors.avgPricePerPax}>
-                  <FormLabel>Average Price Per Person (SGD)</FormLabel>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 10.50"
-                    value={avgPricePerPax}
-                    onChange={(e) => setAvgPricePerPax(e.target.value)}
-                    min="0"
-                    step="0.01"
-                    bg="white"
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Review Cafe</ModalHeader>
+        <ModalCloseButton />
+        <form onSubmit={handleSubmit(submitReview)}>
+          <ModalBody>
+            {/* Rating Control */}
+            <FormControl isInvalid={!!errors.rating} mb={4}>
+              <Flex justify="center">
+                {[...Array(5)].map((_, i) => (
+                  <IconButton
+                    key={i}
+                    aria-label={`Rate ${i+1} stars`}
+                    icon={<StarIcon />}
+                    variant="ghost"
+                    color={i < ratingValue ? "yellow.400" : "gray.300"}
+                    fontSize="3xl"
+                    onClick={() => setRating(i+1)}
+                    _hover={{ color: "yellow.500" }}
+                    size="lg"
                   />
-                </FormControl>
+                ))}
+              </Flex>
+              
+              <Box bg="gray.50" p={3} borderRadius="md" mt={2} textAlign="center">
+                Your rating: {ratingValue}/5
+              </Box>
+              
+              <input
+                type="hidden"
+                {...register("rating", { 
+                  required: "Rating is required",
+                  validate: value => value > 0 || "Please select a rating"
+                })}
+              />
+              <FormErrorMessage>
+                {errors.rating && errors.rating.message}
+              </FormErrorMessage>
+            </FormControl>
 
-                <Textarea
-                  placeholder="Share your experience..."
-                  minH="150px"
-                  focusBorderColor="orange.200"
-                  {...register("comment", )}
-                />
-                <FormErrorMessage>
-                    {errors.comment && (
-                        <span className="error">
-                            {getSafeErrorMessage(errors.comment)}
-                        </span>
-                    )}
-                </FormErrorMessage>
-              </FormControl>
-            </ModalBody>
+            {/* Average Price Per Pax */}
+            <FormControl isInvalid={!!errors.avgPricePerPax} mb={4}>
+              <FormLabel>Average Price Per Person (SGD)</FormLabel>
+              <Input
+                type="number"
+                placeholder="e.g., 10.50"
+                min="0"
+                step="0.01"
+                bg="white"
+                {...register("avgPricePerPax", { 
+                  required: "Price is required",
+                  min: { value: 0.01, message: "Price must be greater than 0" }
+                })}
+              />
+              <FormErrorMessage>
+                {errors.avgPricePerPax && errors.avgPricePerPax.message}
+              </FormErrorMessage>
+            </FormControl>
 
-            <ModalFooter>
-              <Button 
-                type="submit" 
-                colorScheme="blue" 
-                fontSize="l"
-                fontFamily="afacad"
-                isLoading={isSubmitting}
-                isDisabled={rating === 0 || isSubmitting}
-              >
-                Submit Review
-              </Button>
-            </ModalFooter>
-          </form>
-        </ModalContent>
-      </Modal>
-    </form>
+            {/* Comment */}
+            <FormControl isInvalid={!!errors.comment} mb={4}>
+              <Textarea
+                placeholder="Share your experience..."
+                minH="150px"
+                focusBorderColor="orange.200"
+                {...register("comment")}
+              />
+              <FormErrorMessage>
+                {errors.comment && errors.comment.message}
+              </FormErrorMessage>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button 
+              type="submit" 
+              colorScheme="blue" 
+              fontSize="l"
+              fontFamily="afacad"
+              isLoading={isSubmitting}
+              isDisabled={ratingValue === 0}
+            >
+              Submit Review
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
   );
 }
 

@@ -51,8 +51,8 @@ const Cafes = () => {
   const [locationError, setLocationError] = useState("");
   const [isValidatingAddress] = useState(false);
 
-  // Add state for reviews
-  const [reviews, setReviews] = useState({});
+  // Review state
+  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
   // Get user ID from authentication or session
   const getUserId = async () => {
@@ -161,13 +161,7 @@ const Cafes = () => {
     }
   };
 
-    // Review submission handler
-  const handleReviewSubmit = (review) => {
-    setReviews(prev => ({
-      ...prev,
-      [review.cafeId]: [...(prev[review.cafeId] || []), review]
-    }));
-  };
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const editIndex = (i: number) => {
     if (!data) return;
@@ -420,6 +414,18 @@ const Cafes = () => {
     setLocationError("");
   };
 
+  const refetchCafes = useCallback(() => {
+    getData();
+    getBookmarks();
+  }, [getBookmarks]);
+
+  useEffect(() => {
+    if (userId) {
+      getData();
+      getBookmarks();
+    }
+  }, [userId, refetchCafes]);
+
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
       <IconButton
@@ -456,7 +462,7 @@ const Cafes = () => {
         onBookmark={handleBookmark}
         onEdit={handleEditIndex}
         onDelete={handleDelete}
-        onReviewSubmit={handleReviewSubmit}
+        onReviewSubmit={(cafeId) => setReviewingCafeId(cafeId)}
       />
 
       {!showBookmarked && (
@@ -511,6 +517,17 @@ const Cafes = () => {
         onApplyFilter={handleApplyLocationFilter}
         onClearFilter={handleClearLocationFilter}
       />
+
+      {/* Review Form Modal */}
+      <ReviewForm 
+      cafe_id={reviewingCafeId}
+      isOpen={!!reviewingCafeId}
+      onClose={() => setReviewingCafeId(null)}
+      onSubmitSuccess={() => {
+        setReviewingCafeId(null);
+        refetchCafes(); // Refresh cafe data after review submission
+      }}
+    />
     </Flex>
   );
 };
