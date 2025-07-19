@@ -5,4 +5,6 @@ export interface CafeType {
   lat?: string | number;
   lng?: string | number;
   relevanceScore?: number;
+  averageRating: number;
+  reviewCount: number;
 }

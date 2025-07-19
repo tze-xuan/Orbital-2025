@@ -7,7 +7,7 @@ const session = require("express-session");
 
 // (2) LOGIN ROUTE ------
 router.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
+  passport.authenticate("local", (err, user) => {
     if (err) return next(err);
 
     if (!user) {
@@ -17,19 +17,14 @@ router.post("/login", (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
 
-      // Regenerate session after login
-      req.session.regenerate((err) => {
+      req.session.save((err) => {
         if (err) return next(err);
-        const redirectUrl = req.session.returnTo || "/login";
-        delete req.session.returnTo;
-        res.redirect(redirectUrl);
-      })
 
-      return res.json({
-        message: "Login successful",
-        user: { id: user.id, username: user.username },
+        res.json({
+          message: "Login successful",
+          user: { id: user.id, username: user.username },
+        });
       });
-
     });
   })(req, res, next);
 });

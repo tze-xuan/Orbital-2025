@@ -1,7 +1,25 @@
-import { Box, Button, Flex, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import { useState } from "react";
+import {
+  Button,
+  Flex,
+  Text, 
+  Tooltip,
+  IconButton,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Box
+} from "@chakra-ui/react";
+import { StarIcon } from "@chakra-ui/icons";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
+import CafeReviews from "./ReviewList.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;
@@ -11,6 +29,7 @@ interface CafeCardProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
+  onReviewSubmit: () => void;
 }
 
 const CafeCard = ({
@@ -21,13 +40,37 @@ const CafeCard = ({
   onBookmark,
   onEdit,
   onDelete,
+  onReviewSubmit
 }: CafeCardProps) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
+  const handleViewReviews = () => {
+    setCafeIdForReviews(cafe.id);
+    onOpen();
+  };
+
+  const renderStars = (rating) => {
+    return (
+      <Flex>
+        {[...Array(5)].map((_, i) => (
+          <Text 
+            key={i} 
+            color={i < rating ? 'orange.400' : 'gray.300'}
+            fontSize="lg"
+          >
+            ★
+          </Text>
+        ))}
+      </Flex>
+    );
+  }
+
   return (
     <Flex
       direction="column"
       bgColor="white"
       width="90%"
-      height="25vh"
+      height="30vh"
       alignItems="center"
       justifyContent="center"
       textAlign="center"
@@ -58,6 +101,16 @@ const CafeCard = ({
       <Text fontSize="lg" fontFamily="afacad">
         {cafe.cafeLocation}
       </Text>
+
+      {cafe.averageRating > 0 && (
+            <Flex align="center" mb={2}>
+              {renderStars(Math.round(cafe.averageRating))}
+              <Text ml={2} fontSize="sm">
+                ({cafe.reviewCount} reviews)
+              </Text>
+            </Flex>
+          )}
+
       {userLocation && cafe.lat && cafe.lng && (
         <Text fontSize="sm" color="gray.500">
           {calculateDistance(
@@ -88,6 +141,55 @@ const CafeCard = ({
       >
         Delete
       </Button>
+
+      <Flex 
+        alignItems="center" 
+        justifyContent="flex-start" 
+        mt={2}  
+        gap={2}  
+      >
+      <Button 
+        background="#DC6739"
+        borderRadius="3xl"
+        width="10vw"
+        bgColor="#FFCE58"
+        onClick={handleViewReviews}
+      >
+      Reviews
+      </Button>
+
+      <Button
+        onClick={onReviewSubmit}
+        borderRadius="3xl"
+        size="sm"
+        colorScheme="orange"
+        variant="outline"
+        leftIcon={<StarIcon />}
+      >
+      Leave Review
+     </Button>
+    </Flex>
+
+    {/* Reviews List Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            Reviews for {cafe.cafeName}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {cafeIdForReviews && (
+              <CafeReviews cafeId={cafeIdForReviews} />
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 };
