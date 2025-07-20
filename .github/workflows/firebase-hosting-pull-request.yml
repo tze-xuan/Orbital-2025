@@ -1,5 +1,7 @@
 name: Deploy to Firebase Hosting on PR
-on: pull_request
+
+on: 
+  pull_request
 
 permissions:
   checks: write
@@ -10,7 +12,6 @@ jobs:
   build_and_preview:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,19 +20,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-          cache: 'npm'
           
       - name: Install dependencies
-        working-directory: frontend  
+        working-directory: frontend
         run: npm ci
-          
+        
       - name: Build project
         working-directory: frontend
         run: npm run build
-          
+        
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORBITAL_5C65D }}
           projectId: orbital-5c65d
+          entryPoint: './frontend'
