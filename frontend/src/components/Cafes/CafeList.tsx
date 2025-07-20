@@ -93,6 +93,8 @@ const CafeList = ({
             onBookmark={onBookmark}
             onEdit={onEdit}
             onDelete={onDelete}
+            onReviewSubmit={() => onReviewSubmit(cafe.id)}
+            
             onReviewSubmit={() => setReviewingCafeId(cafe.id)}
           />
         ))}

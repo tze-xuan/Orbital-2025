@@ -20,6 +20,7 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
 import CafeReviews from "./ReviewList.tsx";
+import CafeEditModal from "./CafeEditModal.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;
@@ -29,7 +30,7 @@ interface CafeCardProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
-  onReviewSubmit: () => void;
+  onReviewSubmit: (cafeId: number) => void;
 }
 
 const CafeCard = ({
@@ -159,7 +160,7 @@ const CafeCard = ({
       </Button>
 
       <Button
-        onClick={onReviewSubmit}
+        onClick={() => onReviewSubmit(cafe.id)}
         borderRadius="3xl"
         size="sm"
         colorScheme="orange"
