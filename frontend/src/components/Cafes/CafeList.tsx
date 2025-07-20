@@ -3,14 +3,14 @@ import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
-import ReviewForm from "./Review.tsx";
+// import ReviewForm from "./Review.tsx";
 
-interface ReviewData {
-  cafeId: number;
-  rating: number;
-  comment: string;
-  avgPricePerPax: number;
-}
+// interface ReviewData {
+//   cafeId: number;
+//   rating: number;
+//   comment: string;
+//   avgPricePerPax: number;
+// }
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -39,8 +39,8 @@ const CafeList = ({
 }: CafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
-  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [, setReviewingCafeId] = useState<number | null>(null);
+  //   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
@@ -94,7 +94,6 @@ const CafeList = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onReviewSubmit={() => setReviewingCafeId(cafe.id)}
-            
           />
         ))}
       </Flex>
