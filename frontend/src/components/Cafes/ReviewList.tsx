@@ -32,7 +32,8 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
       const response = await axios.get(
         `https://cafechronicles.vercel.app/api/reviews?cafeId=${cafeId}`,
       );
-
+      setReviews(response.data.reviews);
+      setAverageRating(response.data.averageRating || 0);
     } catch (error) {
       console.error('Error fetching reviews:', error);
       

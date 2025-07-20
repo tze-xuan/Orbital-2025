@@ -425,7 +425,6 @@ const Cafes = () => {
       getBookmarks();
     }
   }, [userId, getBookmarks, refetchCafes]);
-  }, [userId, refetchCafes, getBookmarks]);
 
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
