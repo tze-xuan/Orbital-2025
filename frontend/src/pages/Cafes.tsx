@@ -18,6 +18,7 @@ import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
+import ReviewForm from "../components/Cafes/Review.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -49,6 +50,9 @@ const Cafes = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [locationError, setLocationError] = useState("");
   const [isValidatingAddress] = useState(false);
+
+  // Review state
+  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
   // Get user ID from authentication or session
   const getUserId = async () => {
@@ -156,6 +160,8 @@ const Cafes = () => {
       });
     }
   };
+
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const editIndex = (i: number) => {
     if (!data) return;
@@ -408,6 +414,18 @@ const Cafes = () => {
     setLocationError("");
   };
 
+  const refetchCafes = useCallback(() => {
+    getData();
+    getBookmarks();
+  }, [getBookmarks]);
+
+  useEffect(() => {
+    if (userId) {
+      getData();
+      getBookmarks();
+    }
+  }, [userId, refetchCafes]);
+
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
       <IconButton
@@ -444,6 +462,7 @@ const Cafes = () => {
         onBookmark={handleBookmark}
         onEdit={handleEditIndex}
         onDelete={handleDelete}
+        onReviewSubmit={(cafeId) => setReviewingCafeId(cafeId)}
       />
 
       {!showBookmarked && (
@@ -498,6 +517,17 @@ const Cafes = () => {
         onApplyFilter={handleApplyLocationFilter}
         onClearFilter={handleClearLocationFilter}
       />
+
+      {/* Review Form Modal */}
+      <ReviewForm 
+      cafe_id={reviewingCafeId}
+      isOpen={!!reviewingCafeId}
+      onClose={() => setReviewingCafeId(null)}
+      onSubmitSuccess={() => {
+        setReviewingCafeId(null);
+        refetchCafes(); // Refresh cafe data after review submission
+      }}
+    />
     </Flex>
   );
 };

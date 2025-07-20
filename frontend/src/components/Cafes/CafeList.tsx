@@ -1,7 +1,16 @@
+import { useState } from "react";
 import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
+import ReviewForm from "./Review.tsx";
+
+interface ReviewData {
+  cafeId: number;
+  rating: number;
+  comment: string;
+  avgPricePerPax: number;
+}
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -13,6 +22,7 @@ interface CafeListProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
+  onReviewSubmit: (cafeId: number) => void;
 }
 
 const CafeList = ({
@@ -25,9 +35,12 @@ const CafeList = ({
   onBookmark,
   onEdit,
   onDelete,
+  onReviewSubmit,
 }: CafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
+  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
@@ -80,6 +93,8 @@ const CafeList = ({
             onBookmark={onBookmark}
             onEdit={onEdit}
             onDelete={onDelete}
+            onReviewSubmit={() => setReviewingCafeId(cafe.id)}
+            
           />
         ))}
       </Flex>
