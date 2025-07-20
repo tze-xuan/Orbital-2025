@@ -20,7 +20,6 @@ import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
 import CafeReviews from "./ReviewList.tsx";
-import CafeEditModal from "./CafeEditModal.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;

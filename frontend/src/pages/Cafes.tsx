@@ -424,6 +424,7 @@ const Cafes = () => {
       getData();
       getBookmarks();
     }
+  }, [userId, getBookmarks, refetchCafes]);
   }, [userId, refetchCafes, getBookmarks]);
 
   return (
