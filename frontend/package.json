@@ -75,6 +75,7 @@
     "@typescript-eslint/parser": "^8.37.0",
     "eslint": "^8.57.1",
     "eslint-config-react-app": "^7.0.1",
+    "firebase-tools": "^14.11.0",
     "nth-check": "2.1.1",
     "webpack-cli": "^6.0.1"
   },
