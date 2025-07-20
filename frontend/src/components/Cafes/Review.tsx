@@ -101,97 +101,108 @@ const submitReview = async (formData: ReviewFormData) => {
       setValue("rating", value);
   };
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Review Cafe</ModalHeader>
-        <ModalCloseButton />
-        <form onSubmit={handleSubmit(submitReview)}>
-          <ModalBody>
-            {/* Rating Control */}
-            <FormControl isInvalid={!!errors.rating} mb={4}>
-              <Flex justify="center">
-                {[...Array(5)].map((_, i) => (
-                  <IconButton
-                    key={i}
-                    aria-label={`Rate ${i+1} stars`}
-                    icon={<StarIcon />}
-                    variant="ghost"
-                    color={i < ratingValue ? "yellow.400" : "gray.300"}
-                    fontSize="3xl"
-                    onClick={() => setRating(i+1)}
-                    _hover={{ color: "yellow.500" }}
-                    size="lg"
-                  />
-                ))}
-              </Flex>
-              
-              <Box bg="gray.50" p={3} borderRadius="md" mt={2} textAlign="center">
-                Your rating: {ratingValue}/5
-              </Box>
-              
-              <input
-                type="hidden"
-                {...register("rating", { 
-                  required: "Rating is required",
-                  validate: value => value > 0 || "Please select a rating"
-                })}
-              />
-              <FormErrorMessage>
-                {errors.rating && errors.rating.message}
-              </FormErrorMessage>
-            </FormControl>
+    return (
+    <form onSubmit={handleSubmit(submitReview)}>
+      {/* Rating Control */}
+      <FormControl isInvalid={!!errors.rating} mb={4}>
+        <Flex justify="center">
+          {[...Array(5)].map((_, i) => (
+            <IconButton
+              key={i}
+              aria-label={`Rate ${i+1} stars`}
+              icon={<StarIcon />}
+              variant="ghost"
+              color={i < ratingValue ? "yellow.400" : "gray.300"}
+              fontSize="3xl"
+              onClick={() => setRating(i+1)}
+              _hover={{ color: "yellow.500" }}
+              size="lg"
+            />
+          ))}
+        </Flex>
+        
+        <Box bg="gray.50" p={3} borderRadius="md" mt={2} textAlign="center">
+          Your rating: {ratingValue}/5
+        </Box>
+        
+        <input
+          type="hidden"
+          {...register("rating", { 
+            required: "Rating is required",
+            validate: value => value > 0 || "Please select a rating"
+          })}
+          value={ratingValue}
+        />
+        <FormErrorMessage>
+          {errors.rating && String(errors.rating.message)}
+        </FormErrorMessage>
+      </FormControl>
 
-            {/* Average Price Per Pax */}
-            <FormControl isInvalid={!!errors.avgPricePerPax} mb={4}>
-              <FormLabel>Average Price Per Person (SGD)</FormLabel>
-              <Input
-                type="number"
-                placeholder="e.g., 10.50"
-                min="0"
-                step="0.01"
-                bg="white"
-                {...register("avgPricePerPax", { 
-                  required: "Price is required",
-                  min: { value: 0.01, message: "Price must be greater than 0" }
-                })}
-              />
-              <FormErrorMessage>
-                {errors.avgPricePerPax && errors.avgPricePerPax.message}
-              </FormErrorMessage>
-            </FormControl>
+      {/* Average Price Per Pax */}
+      <FormControl isInvalid={!!errors.avgPricePerPax} mb={4}>
+        <FormLabel>Average Price Per Person (SGD)</FormLabel>
+        <Input
+          type="number"
+          placeholder="e.g., 10.50"
+          min="0"
+          step="0.01"
+          bg="white"
+          {...register("avgPricePerPax", { 
+            required: "Price is required",
+            min: { 
+              value: 0.01, 
+              message: "Price must be greater than 0" 
+            },
+            valueAsNumber: true
+          })}
+        />
+        <FormErrorMessage>
+          {errors.avgPricePerPax && String(errors.avgPricePerPax.message)}
+        </FormErrorMessage>
+      </FormControl>
 
-            {/* Comment */}
-            <FormControl isInvalid={!!errors.comment} mb={4}>
-              <Textarea
-                placeholder="Share your experience..."
-                minH="150px"
-                focusBorderColor="orange.200"
-                {...register("comment")}
-              />
-              <FormErrorMessage>
-                {errors.comment && errors.comment.message}
-              </FormErrorMessage>
-            </FormControl>
-          </ModalBody>
+      {/* Comment */}
+      <FormControl isInvalid={!!errors.comment} mb={4}>
+        <FormLabel>Comments (optional)</FormLabel>
+        <Textarea
+          placeholder="Share your experience..."
+          minH="150px"
+          focusBorderColor="orange.200"
+          {...register("comment", {
+            maxLength: {
+              value: 500,
+              message: "Comment cannot exceed 500 characters"
+            }
+          })}
+        />
+        <FormErrorMessage>
+          {errors.comment && String(errors.comment.message)}
+        </FormErrorMessage>
+      </FormControl>
 
-          <ModalFooter>
-            <Button 
-              type="submit" 
-              colorScheme="blue" 
-              fontSize="l"
-              fontFamily="afacad"
-              isLoading={isSubmitting}
-              isDisabled={ratingValue === 0}
-            >
-              Submit Review
-            </Button>
-          </ModalFooter>
-        </form>
-      </ModalContent>
-    </Modal>
+      {/* Action Buttons */}
+      <Flex justifyContent="space-between" mt={6}>
+        <Button 
+          onClick={onClose} 
+          variant="outline" 
+          fontFamily="afacad"
+          isDisabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+        
+        <Button 
+          type="submit" 
+          colorScheme="blue" 
+          fontFamily="afacad"
+          isLoading={isSubmitting}
+          isDisabled={ratingValue === 0}
+        >
+          Submit Review
+        </Button>
+      </Flex>
+    </form>
   );
-}
+};
 
 export default ReviewForm;
