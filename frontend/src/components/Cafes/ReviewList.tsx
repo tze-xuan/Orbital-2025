@@ -14,47 +14,72 @@ import {
   SkeletonCircle
 } from '@chakra-ui/react';
 import { Review } from "../../interfaces/ReviewInterface.tsx"
+import axios from "axios";
 
 interface CafeReviewsProps {
   cafeId: string | number;
 }
 
 const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
-  const { cafe_id } = useParams();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
   useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/reviews/${cafe_id}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch reviews');
+  const fetchReviews = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `https://cafechronicles.vercel.app/api/reviews?cafeId=${cafeId}`,
+        {
+          headers: {
+            'Accept': 'application/json' // Explicitly request JSON
+          }
         }
-        
-        const data = await response.json();
-        setReviews(data.reviews);
-        setAverageRating(data.averageRating || 0);
-      } catch (error) {
-        console.error('Error fetching reviews:', error);
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to load reviews',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      );
 
+      // Check if response is HTML
+      const contentType = response.headers['content-type'];
+      if (contentType.includes('text/html')) {
+        throw new Error('Server returned HTML instead of JSON');
+      }
+
+      if (response.data && response.data.reviews) {
+        setReviews(response.data.reviews);
+        setAverageRating(response.data.averageRating || 0);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      }
+      
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to load reviews',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      
+      setError('Failed to load reviews. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  if (cafeId) {
     fetchReviews();
-  }, [cafe_id, toast]);
+  }
+}, [cafeId, toast]); 
 
   // Function to render star ratings
   const renderStars = (rating) => {

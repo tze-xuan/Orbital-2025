@@ -51,7 +51,6 @@ const CafeCard = ({
   
   const { 
     isOpen: isReviewFormOpen, 
-    onOpen: onReviewFormOpen, 
     onClose: onReviewFormClose 
   } = useDisclosure();
   
