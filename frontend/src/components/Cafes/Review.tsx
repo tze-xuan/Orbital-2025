@@ -8,13 +8,6 @@ import {
   IconButton,
   Textarea,
   useToast,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
   Box
 } from "@chakra-ui/react";
 import { StarIcon } from "@chakra-ui/icons";

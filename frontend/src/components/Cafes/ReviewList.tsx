@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { 
   Box, 
   Heading, 
@@ -24,7 +23,6 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -33,29 +31,12 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
       setIsLoading(true);
       const response = await axios.get(
         `https://cafechronicles.vercel.app/api/reviews?cafeId=${cafeId}`,
-        {
-          headers: {
-            'Accept': 'application/json' // Explicitly request JSON
-          }
-        }
       );
 
-      // Check if response is HTML
-      const contentType = response.headers['content-type'];
-      if (contentType.includes('text/html')) {
-        throw new Error('Server returned HTML instead of JSON');
-      }
-
-      if (response.data && response.data.reviews) {
-        setReviews(response.data.reviews);
-        setAverageRating(response.data.averageRating || 0);
-      } else {
-        throw new Error('Invalid response format');
-      }
     } catch (error) {
       console.error('Error fetching reviews:', error);
       
-      // Enhanced error logging
+      // Error logging
       if (error.response) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
@@ -70,7 +51,6 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
         isClosable: true,
       });
       
-      setError('Failed to load reviews. Please try again later.');
     } finally {
       setIsLoading(false);
     }
