@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "types": ["node"],
+    "moduleResolution": "node",
     "jsx": "react-jsx",
     "esModuleInterop": true, // Fixes the React default import error
     "noEmit": true,
