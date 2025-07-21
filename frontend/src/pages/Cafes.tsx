@@ -161,8 +161,6 @@ const Cafes = () => {
     }
   };
 
-  // const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const editIndex = (i: number) => {
     if (!data) return;
     setEditedId(data[i].id.toString());

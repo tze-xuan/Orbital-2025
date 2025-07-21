@@ -2,14 +2,7 @@ import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
-// import ReviewForm from "./Review.tsx";
-
-// interface ReviewData {
-//   cafeId: number;
-//   rating: number;
-//   comment: string;
-//   avgPricePerPax: number;
-// }
+import { useState } from "react";
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -38,8 +31,7 @@ const CafeList = ({
 }: CafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
-  const [, setReviewingCafeId] = useState<number | null>(null);
-  //   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
@@ -51,6 +43,11 @@ const CafeList = ({
     return searchTerm || userLocation
       ? "No cafés match your filters."
       : "No cafés found.";
+  };
+
+  const handleReviewSubmit = (cafeId: number) => {
+    onReviewSubmit(cafeId);      // Call parent handler
+    setReviewingCafeId(cafeId);  // Set local state
   };
 
   return (
@@ -92,9 +89,7 @@ const CafeList = ({
             onBookmark={onBookmark}
             onEdit={onEdit}
             onDelete={onDelete}
-            onReviewSubmit={() => onReviewSubmit(cafe.id)}
-            
-            onReviewSubmit={() => setReviewingCafeId(cafe.id)}
+            onReviewSubmit={() => handleReviewSubmit(cafe.id)}
           />
         ))}
       </Flex>
