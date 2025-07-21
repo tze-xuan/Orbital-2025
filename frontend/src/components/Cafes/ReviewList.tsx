@@ -96,8 +96,6 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     };
   }, { min: Infinity, max: -Infinity });
 
-  const hasPriceData = priceRange.min !== Infinity && priceRange.max !== -Infinity;
-
   if (isLoading) {
     return (
       <Box p={5}>
@@ -124,9 +122,10 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
       <Heading as="h2" size="xl" mb={6} textAlign="center">
         Customer Reviews
       </Heading>
-      
+
+      {/* Badge Container - Always show if any data exists */}
+    <Flex align="center" justify="center" mb={10} wrap="wrap" gap={3}>
       {averageRating > 0 && (
-        <Flex align="center" justify="center" mb={10}>
           <Badge 
             colorScheme="orange" 
             fontSize="xl" 
@@ -135,8 +134,9 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
           >
             Average Rating: {averageRating.toFixed(1)} / 5
           </Badge>
-      
-      {hasPriceData && (
+      )}
+
+      {priceRange && priceRange.min !== null && priceRange.max !== null && (
           <Badge colorScheme="green" fontSize="xl" p={3} borderRadius="lg">
             Price Range: SGD {priceRange.min.toFixed(2)} - {priceRange.max.toFixed(2)}
           </Badge>
@@ -147,8 +147,7 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
             Avg. Price: SGD {avgPrice.toFixed(2)}
           </Badge>
       )}
-      </Flex>
-      )}
+    </Flex>
 
       {reviews.length === 0 ? (
         <Text textAlign="center" fontSize="lg" color="gray.500">
