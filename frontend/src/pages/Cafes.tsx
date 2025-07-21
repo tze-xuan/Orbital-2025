@@ -515,26 +515,6 @@ const Cafes = () => {
         onApplyFilter={handleApplyLocationFilter}
         onClearFilter={handleClearLocationFilter}
       />
-
-      {/* Review Form Modal */}
-      <ReviewForm 
-        cafe_id={reviewingCafeId}
-        isOpen={!!reviewingCafeId}
-        onClose={() => setReviewingCafeId(null)}
-        onSubmitSuccess={() => {
-          setReviewingCafeId(null);
-          refetchCafes(); // Refresh cafe data after review submission
-        }}
-      />
-      <ReviewForm
-        cafe_id={reviewingCafeId}
-        isOpen={!!reviewingCafeId}
-        onClose={() => setReviewingCafeId(null)}
-        onSubmitSuccess={() => {
-          setReviewingCafeId(null);
-          refetchCafes(); // Refresh cafe data after review submission
-        }}
-      />
     </Flex>
   );
 };
