@@ -2,7 +2,6 @@ import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
-import { useState } from "react";
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -45,11 +44,6 @@ const CafeList = ({
       : "No cafés found.";
   };
 
-  const handleReviewSubmit = (cafeId: number) => {
-    onReviewSubmit(cafeId);      // Call parent handler
-    setReviewingCafeId(cafeId);  // Set local state
-  };
-
   return (
     <>
       {/* Results Info */}
@@ -89,7 +83,7 @@ const CafeList = ({
             onBookmark={onBookmark}
             onEdit={onEdit}
             onDelete={onDelete}
-            onReviewSubmit={() => handleReviewSubmit(cafe.id)}
+            onReviewSubmit={() => onReviewSubmit(cafe.id)}
           />
         ))}
       </Flex>
