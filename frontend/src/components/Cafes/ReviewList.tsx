@@ -30,7 +30,7 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `https://cafechronicles.vercel.app/api/reviews?cafeId=${cafeId}`,
+        `https://cafechronicles.vercel.app/api/reviews/${cafeId}`,
       );
       setReviews(response.data.reviews);
       setAverageRating(response.data.averageRating || 0);

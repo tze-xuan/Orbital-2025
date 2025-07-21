@@ -216,7 +216,7 @@ const CafeCard = ({
             )}
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={onReviewFormClose}>
+            <Button colorScheme="blue" onClick={onReviewsClose}>
               Close
             </Button>
           </ModalFooter>

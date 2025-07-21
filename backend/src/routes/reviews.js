@@ -66,7 +66,7 @@ router.get('/:cafe_id', async(req, res) => {
   if (!cafe_id || isNaN(cafe_id)) {
     return res.status(400).json({ error: 'Invalid cafe ID' });
   }
-  
+
   try {
     const [reviews] = await pool.query(
       `SELECT r.*, u.username
