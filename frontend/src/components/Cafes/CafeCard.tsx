@@ -19,6 +19,7 @@ import { StarIcon } from "@chakra-ui/icons";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
+import ReviewForm from "./Review.tsx";
 import CafeReviews from "./ReviewList.tsx";
 
 interface CafeCardProps {
@@ -29,7 +30,7 @@ interface CafeCardProps {
   onBookmark: (cafeId: number) => void;
   onEdit: (index: number) => void;
   onDelete: (cafeId: number) => void;
-  onReviewSubmit: () => void;
+  onReviewSubmit: (cafeId: number) => void;
 }
 
 const CafeCard = ({
@@ -42,11 +43,21 @@ const CafeCard = ({
   onDelete,
   onReviewSubmit
 }: CafeCardProps) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isReviewsOpen, 
+    onOpen: onReviewsOpen, 
+    onClose: onReviewsClose 
+  } = useDisclosure();
+  
+  const { 
+    isOpen: isReviewFormOpen, 
+    onClose: onReviewFormClose 
+  } = useDisclosure();
+  
   const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
   const handleViewReviews = () => {
     setCafeIdForReviews(cafe.id);
-    onOpen();
+    onReviewsOpen();
   };
 
   const renderStars = (rating) => {
@@ -159,7 +170,7 @@ const CafeCard = ({
       </Button>
 
       <Button
-        onClick={onReviewSubmit}
+        onClick={() => onReviewSubmit(cafe.id)}
         borderRadius="3xl"
         size="sm"
         colorScheme="orange"
@@ -170,8 +181,28 @@ const CafeCard = ({
      </Button>
     </Flex>
 
+    {/* Review Form Modal */}
+      <Modal isOpen={isReviewFormOpen} onClose={onReviewFormClose} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Leave Review for {cafe.cafeName}</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <ReviewForm 
+              cafe_id={cafe.id}
+              isOpen={isReviewFormOpen}  
+              onClose={onReviewFormClose}
+              onSubmitSuccess={() => {
+                onReviewFormClose();
+                // Add any success handling here
+              }}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
     {/* Reviews List Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+      <Modal isOpen={isReviewsOpen} onClose={onReviewsClose} size="xl" scrollBehavior="inside">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
@@ -184,7 +215,7 @@ const CafeCard = ({
             )}
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={onClose}>
+            <Button colorScheme="blue" onClick={onReviewFormClose}>
               Close
             </Button>
           </ModalFooter>

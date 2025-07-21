@@ -161,8 +161,6 @@ const Cafes = () => {
     }
   };
 
-  // const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   const editIndex = (i: number) => {
     if (!data) return;
     setEditedId(data[i].id.toString());
@@ -424,7 +422,7 @@ const Cafes = () => {
       getData();
       getBookmarks();
     }
-  }, [userId, refetchCafes, getBookmarks]);
+  }, [userId, getBookmarks, refetchCafes]);
 
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
@@ -519,6 +517,15 @@ const Cafes = () => {
       />
 
       {/* Review Form Modal */}
+      <ReviewForm 
+        cafe_id={reviewingCafeId}
+        isOpen={!!reviewingCafeId}
+        onClose={() => setReviewingCafeId(null)}
+        onSubmitSuccess={() => {
+          setReviewingCafeId(null);
+          refetchCafes(); // Refresh cafe data after review submission
+        }}
+      />
       <ReviewForm
         cafe_id={reviewingCafeId}
         isOpen={!!reviewingCafeId}

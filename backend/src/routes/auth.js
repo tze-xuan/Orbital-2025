@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require("../config/db");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const session = require("express-session");
 
 // (2) LOGIN ROUTE ------
 router.post("/login", (req, res, next) => {
