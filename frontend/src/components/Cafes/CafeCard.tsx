@@ -51,6 +51,7 @@ const CafeCard = ({
   
   const { 
     isOpen: isReviewFormOpen, 
+    onOpen: onReviewFormOpen,
     onClose: onReviewFormClose 
   } = useDisclosure();
   
@@ -170,7 +171,7 @@ const CafeCard = ({
       </Button>
 
       <Button
-        onClick={() => onReviewSubmit(cafe.id)}
+        onClick={onReviewFormOpen}
         borderRadius="3xl"
         size="sm"
         colorScheme="orange"
@@ -194,7 +195,7 @@ const CafeCard = ({
               onClose={onReviewFormClose}
               onSubmitSuccess={() => {
                 onReviewFormClose();
-                // Add any success handling here
+                onReviewSubmit(cafe.id);
               }}
             />
           </ModalBody>

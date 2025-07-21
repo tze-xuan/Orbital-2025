@@ -60,9 +60,13 @@ router.post('/submit', isAuthenticated, async (req, res) => {
 });
 
 // Get reviews
-router.get('/cafe/:cafe_id', async(req, res) => {
+router.get('/:cafe_id', async(req, res) => {
   const cafe_id = req.params.cafe_id;
 
+  if (!cafe_id || isNaN(cafe_id)) {
+    return res.status(400).json({ error: 'Invalid cafe ID' });
+  }
+  
   try {
     const [reviews] = await pool.query(
       `SELECT r.*, u.username
