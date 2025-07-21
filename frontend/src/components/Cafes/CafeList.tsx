@@ -2,7 +2,6 @@ import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeInterface.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
-import { useState } from "react";
 
 interface CafeListProps {
   cafes: CafeType[];
@@ -31,7 +30,6 @@ const CafeList = ({
 }: CafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
-  const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
   // Empty state messages
   const getEmptyStateMessage = () => {
