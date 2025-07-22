@@ -24,6 +24,7 @@ import CafeReviews from "./ReviewList.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;
+  user: { id: string } | null;
   index: number;
   isBookmarked: boolean;
   userLocation: LocationResult | null;
@@ -35,6 +36,7 @@ interface CafeCardProps {
 
 const CafeCard = ({
   cafe,
+  user,
   index,
   isBookmarked,
   userLocation,
@@ -212,7 +214,9 @@ const CafeCard = ({
           <ModalCloseButton />
           <ModalBody pb={6}>
             {cafeIdForReviews && (
-              <CafeReviews cafeId={cafeIdForReviews} />
+              <CafeReviews 
+                cafeId={cafeIdForReviews}
+                currentUserId={user?.id}  />
             )}
           </ModalBody>
           <ModalFooter>

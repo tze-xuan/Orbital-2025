@@ -1,29 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { 
   Box, 
+  useDisclosure,
   Heading, 
   Text, 
+  Textarea,
   Stack, 
   Avatar, 
   Flex, 
+  Button,
   Skeleton, 
   SkeletonText,
   useToast,
   Badge,
-  SkeletonCircle
+  SkeletonCircle,
+  IconButton,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter
 } from '@chakra-ui/react';
+import { EditIcon, DeleteIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { Review } from "../../interfaces/ReviewInterface.tsx"
 import axios from "axios";
 
 interface CafeReviewsProps {
   cafeId: string | number;
+  currentUserId: string | number | null;
 }
 
-const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
+const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId, currentUserId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+  const [editedComment, setEditedComment] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [deleteReviewId, setDeleteReviewId] = useState<number | null>(null);
   const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
   const fetchReviews = async () => {
@@ -82,19 +100,146 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     });
   };
 
-  // Calculate average price per person
-  const avgPrice = reviews.length > 0 
-    ? reviews.reduce((sum, review) => sum + (review.avgPricePerPax || 0), 0) / reviews.length
-    : 0;
+  // Calculate average price & price range only from reviews with valid prices
+  const validPriceReviews = reviews.filter(review => 
+    review.avgPricePerPax !== null && 
+    review.avgPricePerPax !== undefined &&
+    !isNaN(Number(review.avgPricePerPax)) &&
+    review.avgPricePerPax > 0
+  );
 
-  // Calculate price range
-  const priceRange = reviews.reduce((acc, review) => {
-    if (review.avgPricePerPax === null || review.avgPricePerPax === undefined) return acc;
-    return {
+  // Calculate Avg average price per pax
+  const avgPrice = validPriceReviews.length > 0 
+    ? validPriceReviews.reduce((sum, review) => sum + Number(review.avgPricePerPax), 0) / validPriceReviews.length
+    : null;
+
+  const hasValidPrices = validPriceReviews.length > 0;
+
+  // Price range of avg price per pax
+  const priceRange = hasValidPrices 
+    ? validPriceReviews.reduce((acc, review) => ({
       min: Math.min(acc.min, review.avgPricePerPax),
       max: Math.max(acc.max, review.avgPricePerPax)
-    };
-  }, { min: Infinity, max: -Infinity });
+    }), { min: Infinity, max: -Infinity })
+  : null;
+
+  // Start editing a review
+  const handleEditClick = (review: Review) => {
+    setEditingReviewId(review.id);
+    setEditedComment(review.comment || "");
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingReviewId(null);
+    setEditedComment("");
+  };
+
+  // Save edited review
+  const handleSaveEdit = async (reviewId: number) => {
+    if (!editedComment.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Comment cannot be empty',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // API call to update review
+      await axios.put(
+        `https://cafechronicles.vercel.app/api/reviews/${reviewId}`,
+        { comment: editedComment }
+      );
+
+      // Update local state
+      setReviews(reviews.map(review => 
+        review.id === reviewId 
+          ? { ...review, comment: editedComment } 
+          : review
+      ));
+
+      toast({
+        title: 'Review Updated',
+        description: 'Your review has been updated successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      setEditingReviewId(null);
+      setEditedComment("");
+    } catch (error) {
+      console.error('Error updating review:', error);
+      toast({
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update review',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Confirm delete dialog
+  const confirmDelete = (reviewId: number) => {
+    setDeleteReviewId(reviewId);
+    onOpen();
+  };
+
+  // Execute delete after confirmation
+  const handleDelete = async () => {
+    if (!deleteReviewId) return;
+
+    try {
+      setIsSubmitting(true);
+      
+      // API call to delete review
+      await axios.delete(
+        `https://cafechronicles.vercel.app/api/reviews/${deleteReviewId}`
+      );
+
+      // Update local state
+      setReviews(reviews.filter(review => review.id !== deleteReviewId));
+      
+      // Recalculate average rating
+      const remainingReviews = reviews.filter(review => review.id !== deleteReviewId);
+      if (remainingReviews.length > 0) {
+        const newAverage = remainingReviews.reduce((sum, review) => sum + review.rating, 0) / remainingReviews.length;
+        setAverageRating(newAverage);
+      } else {
+        setAverageRating(0);
+      }
+
+      toast({
+        title: 'Review Deleted',
+        description: 'Your review has been deleted successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      toast({
+        title: 'Delete Failed',
+        description: error instanceof Error ? error.message : 'Failed to delete review',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+      setDeleteReviewId(null);
+      onClose();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,29 +268,78 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
         Customer Reviews
       </Heading>
 
-      {/* Badge Container - Always show if any data exists */}
+    {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Review
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this review? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose} isDisabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button 
+                colorScheme="red" 
+                onClick={handleDelete} 
+                ml={3}
+                isLoading={isSubmitting}
+              >
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+    {/* Badge Container - Always show if any data exists */}
     <Flex align="center" justify="center" mb={10} wrap="wrap" gap={3}>
       {averageRating > 0 && (
-          <Badge 
-            colorScheme="orange" 
-            fontSize="xl" 
-            p={3} 
-            borderRadius="lg"
-          >
-            Average Rating: {averageRating.toFixed(1)} / 5
+          <Badge colorScheme="orange" fontSize="xl" p={3} borderRadius="lg">
+            <Text
+                fontFamily="darumadrop"
+                fontSize="100%"
+                maxW="80vw"
+                textAlign="center"
+            >
+                Average Rating: {averageRating.toFixed(1)} / 5
+            </Text> 
           </Badge>
       )}
 
       {priceRange && priceRange.min !== null && priceRange.max !== null && (
-          <Badge colorScheme="green" fontSize="xl" p={3} borderRadius="lg">
-            Price Range: SGD {priceRange.min.toFixed(2)} - {priceRange.max.toFixed(2)}
-          </Badge>
+      <Badge colorScheme="green" fontSize="xl" p={3} borderRadius="lg">
+        <Text
+          fontFamily="darumadrop"
+          fontSize="100%"
+          maxW="80vw"
+          textAlign="center"
+        >
+          Price Range: SGD {Number(priceRange.min).toFixed(2)} - {Number(priceRange.max).toFixed(2)}
+        </Text>  
+     </Badge>
       )}
-        
-      {avgPrice > 0 && (
-          <Badge colorScheme="blue" fontSize="xl" p={3} borderRadius="lg">
-            Avg. Price: SGD {avgPrice.toFixed(2)}
-          </Badge>
+      
+      {avgPrice && !isNaN(avgPrice) && avgPrice > 0 && (
+        <Badge colorScheme="blue" fontSize="xl" p={3} borderRadius="lg">
+          <Text
+            fontFamily="darumadrop"
+            fontSize="100%"
+            maxW="80vw"
+            textAlign="center"
+          >
+            Avg. Price Per Pax: SGD {avgPrice.toFixed(2)}
+          </Text>
+        </Badge>
       )}
     </Flex>
 
@@ -164,6 +358,49 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
               borderRadius="lg"
               bg="white"
             >
+              {/* Edit/Delete buttons for current user's reviews */}
+              {currentUserId && review.user_id === currentUserId && (
+                <Flex position="absolute" top={4} right={4} gap={2}>
+                  {editingReviewId === review.id ? (
+                    <>
+                      <IconButton
+                        aria-label="Save edit"
+                        icon={<CheckIcon />}
+                        colorScheme="green"
+                        size="sm"
+                        onClick={() => handleSaveEdit(review.id)}
+                        isLoading={isSubmitting}
+                      />
+                      <IconButton
+                        aria-label="Cancel edit"
+                        icon={<CloseIcon />}
+                        colorScheme="gray"
+                        size="sm"
+                        onClick={handleCancelEdit}
+                        isDisabled={isSubmitting}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <IconButton
+                        aria-label="Edit review"
+                        icon={<EditIcon />}
+                        colorScheme="blue"
+                        size="sm"
+                        onClick={() => handleEditClick(review)}
+                      />
+                      <IconButton
+                        aria-label="Delete review"
+                        icon={<DeleteIcon />}
+                        colorScheme="red"
+                        size="sm"
+                        onClick={() => confirmDelete(review.id)}
+                      />
+                    </>
+                  )}
+                </Flex>
+              )}
+
               <Flex align="center" mb={4}>
                 <Avatar name={review.username} mr={3} />
                 <Box>
@@ -181,8 +418,18 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
                 { `Rated: ${review.rating} stars`}
               </Text>
               
-              {review.comment && (
-                <Text whiteSpace="pre-line">{review.comment}</Text>
+              {editingReviewId === review.id ? (
+                <Textarea
+                  value={editedComment}
+                  onChange={(e) => setEditedComment(e.target.value)}
+                  placeholder="Edit your comment..."
+                  mb={3}
+                  minH="100px"
+                />
+              ) : (
+                review.comment && (
+                  <Text whiteSpace="pre-line">{review.comment}</Text>
+                )
               )}
             </Box>
           ))}
@@ -191,6 +438,5 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId }) => {
     </Box>
   );
 };
-
 
 export default CafeReviews;

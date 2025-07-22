@@ -18,7 +18,6 @@ import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
-import ReviewForm from "../components/Cafes/Review.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -54,6 +53,20 @@ const Cafes = () => {
   // Review state
   const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
 
+  const getCurrentUser = (): { id: string } | null => {
+    try {
+      const userString = localStorage.getItem("currentUser");
+      if (!userString) return null;
+      
+      const user = JSON.parse(userString);
+      return user ? { ...user, id: user.id.toString() } : null;
+    } catch (error) {
+      console.error("Error parsing current user:", error);
+      return null;
+    }
+  };
+  
+  const currentUser = getCurrentUser();
   // Get user ID from authentication or session
   const getUserId = async () => {
     try {
@@ -452,6 +465,7 @@ const Cafes = () => {
 
       <CafeList
         cafes={filteredCafes}
+        user={currentUser}
         showBookmarked={showBookmarked}
         searchTerm={searchTerm}
         userLocation={userLocation}
