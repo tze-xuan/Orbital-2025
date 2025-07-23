@@ -24,6 +24,8 @@ import CafeReviews from "./ReviewList.tsx";
 
 interface CafeCardProps {
   cafe: CafeType;
+  user: { id: string } | null;
+  currentUserId?: string;
   index: number;
   isBookmarked: boolean;
   userLocation: LocationResult | null;
@@ -33,8 +35,9 @@ interface CafeCardProps {
   onReviewSubmit: (cafeId: number) => void;
 }
 
-const CafeCard = ({
+const CafeCard: React.FC<CafeCardProps> = ({
   cafe,
+  user,
   index,
   isBookmarked,
   userLocation,
@@ -51,6 +54,7 @@ const CafeCard = ({
   
   const { 
     isOpen: isReviewFormOpen, 
+    onOpen: onReviewFormOpen,
     onClose: onReviewFormClose 
   } = useDisclosure();
   
@@ -170,7 +174,7 @@ const CafeCard = ({
       </Button>
 
       <Button
-        onClick={() => onReviewSubmit(cafe.id)}
+        onClick={onReviewFormOpen}
         borderRadius="3xl"
         size="sm"
         colorScheme="orange"
@@ -194,7 +198,7 @@ const CafeCard = ({
               onClose={onReviewFormClose}
               onSubmitSuccess={() => {
                 onReviewFormClose();
-                // Add any success handling here
+                onReviewSubmit(cafe.id);
               }}
             />
           </ModalBody>
@@ -211,11 +215,13 @@ const CafeCard = ({
           <ModalCloseButton />
           <ModalBody pb={6}>
             {cafeIdForReviews && (
-              <CafeReviews cafeId={cafeIdForReviews} />
+              <CafeReviews 
+                cafeId={cafeIdForReviews}
+                currentUserId={user ? user.id : null}   />
             )}
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="blue" onClick={onReviewFormClose}>
+            <Button colorScheme="blue" onClick={onReviewsClose}>
               Close
             </Button>
           </ModalFooter>

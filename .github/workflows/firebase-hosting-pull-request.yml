@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '22.x'
           
       - name: Install dependencies
         working-directory: frontend
@@ -35,4 +35,3 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORBITAL_5C65D }}
           projectId: orbital-5c65d
-          entryPoint: './frontend'

@@ -18,7 +18,7 @@ import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
-import ReviewForm from "../components/Cafes/Review.tsx";
+import CafeReviews from "../components/Cafes/ReviewList.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -53,6 +53,21 @@ const Cafes = () => {
 
   // Review state
   const [reviewingCafeId, setReviewingCafeId] = useState<number | null>(null);
+
+  const getCurrentUser = (): { id: string } | null => {
+    try {
+      const userString = localStorage.getItem("currentUser");
+      if (!userString) return null;
+      
+      const user = JSON.parse(userString);
+      return user ? { ...user, id: user.id.toString() } : null;
+    } catch (error) {
+      console.error("Error parsing current user:", error);
+      return null;
+    }
+  };
+  
+  const currentUser = getCurrentUser();
 
   // Get user ID from authentication or session
   const getUserId = async () => {
@@ -452,6 +467,8 @@ const Cafes = () => {
 
       <CafeList
         cafes={filteredCafes}
+        user={currentUser}
+        currentUserId={currentUser?.id}
         showBookmarked={showBookmarked}
         searchTerm={searchTerm}
         userLocation={userLocation}
@@ -462,6 +479,13 @@ const Cafes = () => {
         onDelete={handleDelete}
         onReviewSubmit={(cafeId) => setReviewingCafeId(cafeId)}
       />
+
+      {reviewingCafeId && (
+      <CafeReviews 
+        cafeId={reviewingCafeId} 
+        currentUserId={currentUser?.id} 
+      />
+      )}
 
       {!showBookmarked && (
         <Button
@@ -514,26 +538,6 @@ const Cafes = () => {
         setUserLocation={setUserLocation}
         onApplyFilter={handleApplyLocationFilter}
         onClearFilter={handleClearLocationFilter}
-      />
-
-      {/* Review Form Modal */}
-      <ReviewForm 
-        cafe_id={reviewingCafeId}
-        isOpen={!!reviewingCafeId}
-        onClose={() => setReviewingCafeId(null)}
-        onSubmitSuccess={() => {
-          setReviewingCafeId(null);
-          refetchCafes(); // Refresh cafe data after review submission
-        }}
-      />
-      <ReviewForm
-        cafe_id={reviewingCafeId}
-        isOpen={!!reviewingCafeId}
-        onClose={() => setReviewingCafeId(null)}
-        onSubmitSuccess={() => {
-          setReviewingCafeId(null);
-          refetchCafes(); // Refresh cafe data after review submission
-        }}
       />
     </Flex>
   );

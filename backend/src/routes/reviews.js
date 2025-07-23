@@ -60,8 +60,8 @@ router.post('/submit', isAuthenticated, async (req, res) => {
 });
 
 // Get reviews
-router.get('/cafe/:cafe_id', async(req, res) => {
-  const cafe_id = req.params.cafe_id;
+router.get(['/', '/:cafe_id'], async(req, res) => {
+  const cafe_id = parseInt(req.params.cafe_id || req.query.cafe_id);
 
   try {
     const [reviews] = await pool.query(
@@ -84,7 +84,13 @@ router.get('/cafe/:cafe_id', async(req, res) => {
       [cafe_id]
     );
     
-    const { averageRating, minPrice, maxPrice, avgPrice } = avgResult[0];
+    // Handle empty results
+    const hasReviews = avgResult.length > 0 && avgResult[0].averageRating !== null;
+    
+    const averageRating = hasReviews ? parseFloat(avgResult[0].averageRating) : 0;
+    const minPrice = hasReviews ? parseFloat(avgResult[0].minPrice) : null;
+    const maxPrice = hasReviews ? parseFloat(avgResult[0].maxPrice) : null;
+    const avgPrice = hasReviews ? parseFloat(avgResult[0].avgPrice) : null;
     
     res.json({
       averageRating: averageRating || 0,
@@ -98,5 +104,55 @@ router.get('/cafe/:cafe_id', async(req, res) => {
     res.status(500).json({error: 'Database error'});
   }
 })
+
+// Edit reviews
+router.put('/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { comment } = req.body;
+    const reviewId = req.params.id;
+    
+    // Verify user owns the review
+    const [review] = await pool.query('SELECT * FROM reviews WHERE id = ?', [reviewId]);
+    if (!review.length) return res.status(404).json({ error: 'Review not found' });
+    if (review[0].user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    // Update the review
+    await pool.query('UPDATE reviews SET comment = ? WHERE id = ?', [comment, reviewId]);
+    
+    // Fetch updated review with username
+    const [updatedReview] = await pool.query(
+      `SELECT r.*, u.username 
+       FROM reviews r
+       JOIN users u ON r.user_id = u.id
+       WHERE r.id = ?`,
+      [reviewId]
+    );
+
+    res.json(updatedReview[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Delete reviews
+router.delete('/:id', isAuthenticated, async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    
+    // Verify user owns the review
+    const [review] = await pool.query('SELECT * FROM reviews WHERE id = ?', [reviewId]);
+    if (!review.length) return res.status(404).json({ error: 'Review not found' });
+    if (review[0].user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+
+    // Delete the review
+    await pool.query('DELETE FROM reviews WHERE id = ?', [reviewId]);
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
 module.exports = router;

@@ -5,4 +5,5 @@ export interface Review {
   avgPricePerPax: number | null;
   created_at: string;
   username: string;
+  user_id: number
 }
