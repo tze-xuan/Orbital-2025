@@ -117,10 +117,6 @@ const Cafes = () => {
     }
   }, [toast]);
 
-  useEffect(() => {
-    getUserId();
-  }, [getUserId]);
-
   // Data fetching
   const getData = useCallback(async () => {
     try {
@@ -190,18 +186,15 @@ const Cafes = () => {
     }
   }, [userId, BOOKMARK_API_ROUTE, toast]);
 
-  // Initial data loading
+  // Load cafes regardless of auth status
   useEffect(() => {
-    const loadData = async () => {
-      await getUserId();
-      if (userId !== null) {
-        await getData();
-        await getBookmarks();
-      }
-    };
+    getData();
+  }, [getData]);
 
-    loadData();
-  }, [getUserId, userId, getData, getBookmarks]);
+  // Only bookmarks require auth
+  useEffect(() => {
+    if (userId) getBookmarks();
+  }, [userId, getBookmarks]);
 
   // Bookmark handling
   const handleBookmark = async (cafeId: number) => {
