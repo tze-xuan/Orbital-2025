@@ -6,6 +6,7 @@ import CafeCard from "./CafeCard";
 interface CafeListProps {
   cafes: CafeType[];
   user:{ id: string } | null;
+  currentUserId?: string;
   showBookmarked: boolean;
   searchTerm: string;
   userLocation: LocationResult | null;
@@ -20,6 +21,7 @@ interface CafeListProps {
 const CafeList = ({
   cafes,
   user,
+  currentUserId,
   showBookmarked,
   searchTerm,
   userLocation,
@@ -79,6 +81,7 @@ const CafeList = ({
             key={cafe.id}
             cafe={cafe}
             user={user}
+            currentUserId={currentUserId}
             index={index}
             isBookmarked={isBookmarked(cafe.id)}
             userLocation={userLocation}

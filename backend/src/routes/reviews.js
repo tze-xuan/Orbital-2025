@@ -106,7 +106,7 @@ router.get(['/', '/:cafe_id'], async(req, res) => {
 })
 
 // Edit reviews
-router.put('/:id', async (req, res) => {
+router.put('/:id', isAuthenticated, async (req, res) => {
   try {
     const { comment } = req.body;
     const reviewId = req.params.id;
@@ -136,7 +136,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete reviews
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', isAuthenticated, async (req, res) => {
   try {
     const reviewId = req.params.id;
     

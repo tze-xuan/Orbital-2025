@@ -29,7 +29,6 @@ type ReviewFormData = {
 
 const ReviewForm = ({ 
   cafe_id, 
-  isOpen, 
   onClose, 
   onSubmitSuccess 
 }: ReviewFormProps) => {

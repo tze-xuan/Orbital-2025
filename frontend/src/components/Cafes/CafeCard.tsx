@@ -25,6 +25,7 @@ import CafeReviews from "./ReviewList.tsx";
 interface CafeCardProps {
   cafe: CafeType;
   user: { id: string } | null;
+  currentUserId?: string;
   index: number;
   isBookmarked: boolean;
   userLocation: LocationResult | null;
@@ -34,7 +35,7 @@ interface CafeCardProps {
   onReviewSubmit: (cafeId: number) => void;
 }
 
-const CafeCard = ({
+const CafeCard: React.FC<CafeCardProps> = ({
   cafe,
   user,
   index,
@@ -216,7 +217,7 @@ const CafeCard = ({
             {cafeIdForReviews && (
               <CafeReviews 
                 cafeId={cafeIdForReviews}
-                currentUserId={user?.id}  />
+                currentUserId={user ? user.id : null}   />
             )}
           </ModalBody>
           <ModalFooter>

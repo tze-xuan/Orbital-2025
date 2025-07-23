@@ -67,6 +67,7 @@ const Cafes = () => {
   };
   
   const currentUser = getCurrentUser();
+
   // Get user ID from authentication or session
   const getUserId = async () => {
     try {
@@ -466,6 +467,7 @@ const Cafes = () => {
       <CafeList
         cafes={filteredCafes}
         user={currentUser}
+        currentUserId={currentUser?.id}
         showBookmarked={showBookmarked}
         searchTerm={searchTerm}
         userLocation={userLocation}

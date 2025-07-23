@@ -25,6 +25,7 @@ import {
 import { EditIcon, DeleteIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { Review } from "../../interfaces/ReviewInterface.tsx"
 import axios from "axios";
+axios.defaults.withCredentials = true;
 
 interface CafeReviewsProps {
   cafeId: string | number;
@@ -154,7 +155,7 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId, currentUserId }) => {
       // API call to update review
       await axios.put(
         `https://cafechronicles.vercel.app/api/reviews/${reviewId}`,
-        { comment: editedComment }
+        { comment: editedComment} 
       );
 
       // Update local state
@@ -357,10 +358,17 @@ const CafeReviews: React.FC<CafeReviewsProps> = ({ cafeId, currentUserId }) => {
               borderWidth="1px" 
               borderRadius="lg"
               bg="white"
+              position="relative" 
             >
               {/* Edit/Delete buttons for current user's reviews */}
-              {currentUserId && review.user_id === currentUserId && (
-                <Flex position="absolute" top={4} right={4} gap={2}>
+              {currentUserId && String(review.user_id) === String(currentUserId) && (
+                <Flex 
+                  position="absolute" 
+                  top={4} 
+                  right={4} 
+                  gap={2} 
+                  zIndex={10}
+                >
                   {editingReviewId === review.id ? (
                     <>
                       <IconButton

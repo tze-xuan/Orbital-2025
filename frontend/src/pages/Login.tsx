@@ -170,7 +170,22 @@ const Login = () => {
         { withCredentials: true }
       );
 
+      const userDataFromAPI = response.data;
+
       if (response.data.message === "Login successful") {
+        // Handle different API response structures
+        const userData = userDataFromAPI.user || userDataFromAPI.data || userDataFromAPI;
+  
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: userData.id,
+          username: userData.username,
+          email: userData.email
+        }));
+  
+        // Verify storage worked
+          const stored = localStorage.getItem('currentUser');
+          console.log('Successfully stored user:', stored);
+
         toast({
           title: "Logged in successfully!",
           description: "Redirecting to homepage...",
