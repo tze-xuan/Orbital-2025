@@ -1,5 +1,5 @@
 import { Flex, Text } from "@chakra-ui/react";
-import { CafeType } from "../../interfaces/CafeInterface.tsx";
+import { CafeType } from "../../interfaces/CafeType.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
 import CafeCard from "./CafeCard";
 
@@ -46,7 +46,7 @@ const CafeList = ({
       ? "No cafés match your filters."
       : "No cafés found.";
   };
-  
+
   return (
     <>
       {/* Results Info */}

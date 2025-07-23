@@ -79,10 +79,9 @@ router.get("/check-username", async (req, res) => {
   const normalisedUsername = username.trim().toLowerCase();
 
   try {
-    const [users] = await pool.query(
-      "SELECT * FROM users WHERE username = ?",
-      [normalisedUsername]
-    );
+    const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [
+      normalisedUsername,
+    ]);
 
     res.json({ available: users.length === 0 });
   } catch (err) {
@@ -91,7 +90,7 @@ router.get("/check-username", async (req, res) => {
 });
 
 // (5) LOGOUT ROUTE ------
-router.post("/logout", (req, res) => { 
+router.post("/logout", (req, res) => {
   const handleLogout = () => {
     req.logout((err) => {
       // Proceed to session destruction even if logout fails
@@ -103,7 +102,7 @@ router.post("/logout", (req, res) => {
   const destroySession = (req, res) => {
     req.session.destroy((err) => {
       clearSessionCookie(res);
-      
+
       if (err) {
         console.error("Session destruction error:", err);
         return res.status(500).json({ error: "Logout failed" });
@@ -116,14 +115,15 @@ router.post("/logout", (req, res) => {
   // Clear client-side cookie
   const clearSessionCookie = (res) => {
     res.clearCookie("connect.sid", {
-      domain: process.env.NODE_ENV === 'production'
-      ? 'cafechronicles.vercel.app' 
-      : 'localhost',
-      path: '/',
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "cafechronicles.vercel.app"
+          : "localhost",
+      path: "/",
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
-      expires: new Date(0)
+      sameSite: "none",
+      expires: new Date(0),
     });
   };
 
@@ -213,6 +213,25 @@ router.delete("/users/:username", async (req, res) => {
     res.json("User was deleted");
   } catch (err) {
     console.error(err.message);
+  }
+});
+
+// Getting user ID
+router.get("/me", (req, res) => {
+  console.log("Getting current user from session");
+  console.log("Session ID:", req.sessionID);
+  console.log("Session data:", req.session);
+  console.log("Is authenticated:", req.isAuthenticated());
+
+  if (req.isAuthenticated() && req.user) {
+    console.log("Returning authenticated user:", req.user);
+    res.json({ id: req.user.id, ...req.user });
+  } else if (req.session?.passport?.user) {
+    console.log("Returning user from session:", req.session.passport.user);
+    res.json({ id: req.session.passport.user });
+  } else {
+    console.log("No authenticated user found");
+    res.status(401).json({ error: "Not authenticated" });
   }
 });
 

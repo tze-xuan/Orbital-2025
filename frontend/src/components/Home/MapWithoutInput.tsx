@@ -6,8 +6,9 @@ import {
   Map,
   Pin,
 } from "@vis.gl/react-google-maps";
+import { CafeType } from "../../interfaces/CafeType.tsx";
 
-const MAP_API_ROUTE = "https://cafechronicles.vercel.app/api/locations/";
+const MAP_API_ROUTE = "https://cafechronicles.vercel.app/api/locations";
 
 const GeocodedMarker = ({ cafe }) => {
   // Safely parse coordinates
@@ -36,7 +37,7 @@ const GeocodedMarker = ({ cafe }) => {
 export const MapWithoutInput = () => {
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const mapId = process.env.REACT_APP_GOOGLE_MAPS_MAP_ID;
-  const [cafes, setCafes] = useState([]);
+  const [cafes, setCafes] = useState<CafeType[]>([]);
   const [userLocation, setUserLocation] = useState(null); // Start with null
   const [loadingLocation, setLoadingLocation] = useState(true);
   const [, setLoadingCafes] = useState(true);
@@ -122,9 +123,8 @@ export const MapWithoutInput = () => {
               left: 0,
             }}
           >
-            {cafes.map((cafe) => (
-              <GeocodedMarker key={cafe.id} cafe={cafe} />
-            ))}
+            {Array.isArray(cafes) &&
+              cafes.map((cafe) => <GeocodedMarker key={cafe.id} cafe={cafe} />)}
           </Map>
         </Box>
       </APIProvider>

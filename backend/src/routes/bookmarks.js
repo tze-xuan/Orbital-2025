@@ -3,8 +3,31 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
+const isAuthenticated = (req, res, next) => {
+  console.log("Session ID:", req.sessionID);
+  console.log("Session data:", req.session);
+
+  if (req.isAuthenticated()) {
+    console.log("User authenticated via passport");
+    return next();
+  }
+
+  if (req.session?.passport?.user) {
+    console.log("User authenticated via session data");
+    req.user = { id: req.session.passport.user };
+    return next();
+  }
+
+  console.warn("Unauthorized access attempt");
+  res.status(401).json({ error: "Unauthorized" });
+};
+
+router.use((req, res, next) => {
+  next();
+});
+
 // Get all bookmarks for a specific user
-router.get("/user/:userId", async (req, res) => {
+router.get("/user/:userId", isAuthenticated, async (req, res) => {
   try {
     const { userId } = req.params;
     const [rows] = await pool.query(
@@ -24,7 +47,7 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 // Add a bookmark
-router.post("/", async (req, res) => {
+router.post("/", isAuthenticated, async (req, res) => {
   try {
     const { user_id, cafe_id } = req.body;
 
@@ -52,28 +75,32 @@ router.post("/", async (req, res) => {
 });
 
 // Remove a bookmark
-router.delete("/user/:userId/cafe/:cafeId", async (req, res) => {
-  try {
-    const { userId, cafeId } = req.params;
+router.delete(
+  "/user/:userId/cafe/:cafeId",
+  isAuthenticated,
+  async (req, res) => {
+    try {
+      const { userId, cafeId } = req.params;
 
-    const [result] = await pool.execute(
-      "DELETE FROM bookmarks WHERE user_id = ? AND cafe_id = ?",
-      [userId, cafeId]
-    );
+      const [result] = await pool.execute(
+        "DELETE FROM bookmarks WHERE user_id = ? AND cafe_id = ?",
+        [userId, cafeId]
+      );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Bookmark not found" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Bookmark not found" });
+      }
+
+      res.json({ message: "Bookmark removed successfully" });
+    } catch (error) {
+      console.error("Error removing bookmark:", error);
+      res.status(500).json({ error: "Failed to remove bookmark" });
     }
-
-    res.json({ message: "Bookmark removed successfully" });
-  } catch (error) {
-    console.error("Error removing bookmark:", error);
-    res.status(500).json({ error: "Failed to remove bookmark" });
   }
-});
+);
 
 // Get all bookmarks (admin view)
-router.get("/", async (req, res) => {
+router.get("/", isAuthenticated, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT b.*, c.cafeName, c.cafeLocation 
