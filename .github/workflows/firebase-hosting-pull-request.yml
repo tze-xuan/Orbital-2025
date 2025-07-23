@@ -35,4 +35,3 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ORBITAL_5C65D }}
           projectId: orbital-5c65d
-          entryPoint: 'frontend'
