@@ -18,6 +18,7 @@ import CafeList from "../components/Cafes/CafeList.tsx";
 import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
 import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
+import CafeReviews from "../components/Cafes/ReviewList.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -478,6 +479,13 @@ const Cafes = () => {
         onDelete={handleDelete}
         onReviewSubmit={(cafeId) => setReviewingCafeId(cafeId)}
       />
+
+      {reviewingCafeId && (
+      <CafeReviews 
+        cafeId={reviewingCafeId} 
+        currentUserId={currentUser?.id} 
+      />
+      )}
 
       {!showBookmarked && (
         <Button
