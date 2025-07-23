@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   Button,
   Flex,
-  Text, 
+  Text,
   Tooltip,
   IconButton,
   useDisclosure,
@@ -13,11 +13,11 @@ import {
   ModalCloseButton,
   ModalBody,
   ModalFooter,
-  Box
+  Box,
 } from "@chakra-ui/react";
 import { StarIcon } from "@chakra-ui/icons";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
-import { CafeType } from "../../interfaces/CafeInterface.tsx";
+import { CafeType } from "../../interfaces/CafeType.tsx";
 import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
 import ReviewForm from "./Review.tsx";
 import CafeReviews from "./ReviewList.tsx";
@@ -44,21 +44,23 @@ const CafeCard: React.FC<CafeCardProps> = ({
   onBookmark,
   onEdit,
   onDelete,
-  onReviewSubmit
+  onReviewSubmit,
 }: CafeCardProps) => {
-  const { 
-    isOpen: isReviewsOpen, 
-    onOpen: onReviewsOpen, 
-    onClose: onReviewsClose 
+  const {
+    isOpen: isReviewsOpen,
+    onOpen: onReviewsOpen,
+    onClose: onReviewsClose,
   } = useDisclosure();
-  
-  const { 
-    isOpen: isReviewFormOpen, 
+
+  const {
+    isOpen: isReviewFormOpen,
     onOpen: onReviewFormOpen,
-    onClose: onReviewFormClose 
+    onClose: onReviewFormClose,
   } = useDisclosure();
-  
-  const [cafeIdForReviews, setCafeIdForReviews] = useState<string | number | null>(null);
+
+  const [cafeIdForReviews, setCafeIdForReviews] = useState<
+    string | number | null
+  >(null);
   const handleViewReviews = () => {
     setCafeIdForReviews(cafe.id);
     onReviewsOpen();
@@ -68,9 +70,9 @@ const CafeCard: React.FC<CafeCardProps> = ({
     return (
       <Flex>
         {[...Array(5)].map((_, i) => (
-          <Text 
-            key={i} 
-            color={i < rating ? 'orange.400' : 'gray.300'}
+          <Text
+            key={i}
+            color={i < rating ? "orange.400" : "gray.300"}
             fontSize="lg"
           >
             ★
@@ -78,7 +80,7 @@ const CafeCard: React.FC<CafeCardProps> = ({
         ))}
       </Flex>
     );
-  }
+  };
 
   return (
     <Flex
@@ -118,13 +120,13 @@ const CafeCard: React.FC<CafeCardProps> = ({
       </Text>
 
       {cafe.averageRating > 0 && (
-            <Flex align="center" mb={2}>
-              {renderStars(Math.round(cafe.averageRating))}
-              <Text ml={2} fontSize="sm">
-                ({cafe.reviewCount} reviews)
-              </Text>
-            </Flex>
-          )}
+        <Flex align="center" mb={2}>
+          {renderStars(Math.round(cafe.averageRating))}
+          <Text ml={2} fontSize="sm">
+            ({cafe.reviewCount} reviews)
+          </Text>
+        </Flex>
+      )}
 
       {userLocation && cafe.lat && cafe.lng && (
         <Text fontSize="sm" color="gray.500">
@@ -157,44 +159,39 @@ const CafeCard: React.FC<CafeCardProps> = ({
         Delete
       </Button>
 
-      <Flex 
-        alignItems="center" 
-        justifyContent="flex-start" 
-        mt={2}  
-        gap={2}  
-      >
-      <Button 
-        background="#DC6739"
-        borderRadius="3xl"
-        width="10vw"
-        bgColor="#FFCE58"
-        onClick={handleViewReviews}
-      >
-      Reviews
-      </Button>
+      <Flex alignItems="center" justifyContent="flex-start" mt={2} gap={2}>
+        <Button
+          background="#DC6739"
+          borderRadius="3xl"
+          width="10vw"
+          bgColor="#FFCE58"
+          onClick={handleViewReviews}
+        >
+          Reviews
+        </Button>
 
-      <Button
-        onClick={onReviewFormOpen}
-        borderRadius="3xl"
-        size="sm"
-        colorScheme="orange"
-        variant="outline"
-        leftIcon={<StarIcon />}
-      >
-      Leave Review
-     </Button>
-    </Flex>
+        <Button
+          onClick={onReviewFormOpen}
+          borderRadius="3xl"
+          size="sm"
+          colorScheme="orange"
+          variant="outline"
+          leftIcon={<StarIcon />}
+        >
+          Leave Review
+        </Button>
+      </Flex>
 
-    {/* Review Form Modal */}
+      {/* Review Form Modal */}
       <Modal isOpen={isReviewFormOpen} onClose={onReviewFormClose} size="md">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Leave Review for {cafe.cafeName}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <ReviewForm 
+            <ReviewForm
               cafe_id={cafe.id}
-              isOpen={isReviewFormOpen}  
+              isOpen={isReviewFormOpen}
               onClose={onReviewFormClose}
               onSubmitSuccess={() => {
                 onReviewFormClose();
@@ -205,19 +202,23 @@ const CafeCard: React.FC<CafeCardProps> = ({
         </ModalContent>
       </Modal>
 
-    {/* Reviews List Modal */}
-      <Modal isOpen={isReviewsOpen} onClose={onReviewsClose} size="xl" scrollBehavior="inside">
+      {/* Reviews List Modal */}
+      <Modal
+        isOpen={isReviewsOpen}
+        onClose={onReviewsClose}
+        size="xl"
+        scrollBehavior="inside"
+      >
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            Reviews for {cafe.cafeName}
-          </ModalHeader>
+          <ModalHeader>Reviews for {cafe.cafeName}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             {cafeIdForReviews && (
-              <CafeReviews 
+              <CafeReviews
                 cafeId={cafeIdForReviews}
-                currentUserId={user ? user.id : null}   />
+                currentUserId={user ? user.id : null}
+              />
             )}
           </ModalBody>
           <ModalFooter>

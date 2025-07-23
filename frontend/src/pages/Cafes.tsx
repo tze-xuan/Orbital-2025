@@ -1,3 +1,5 @@
+// Enhanced debugging version of your Cafes component
+
 import {
   Button,
   Flex,
@@ -11,7 +13,7 @@ import LocationFilterModal, {
   LocationResult,
   calculateDistance,
 } from "../components/Cafes/LocationFilterModal.tsx";
-import { CafeType } from "../interfaces/CafeInterface.tsx";
+import { CafeType } from "../interfaces/CafeType.tsx";
 import { Bookmark } from "../interfaces/BookmarkInterface.tsx";
 import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
 import CafeList from "../components/Cafes/CafeList.tsx";
@@ -22,12 +24,14 @@ import CafeReviews from "../components/Cafes/ReviewList.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
-  const BOOKMARK_API_ROUTE = "https://cafechronicles.vercel.app/api/bookmarks/";
+  const BOOKMARK_API_ROUTE = "https://cafechronicles.vercel.app/api/bookmarks";
+
   const [data, setData] = useState<CafeType[] | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [userId, setUserId] = useState<number | null>(null);
   const [showBookmarked, setShowBookmarked] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [, setError] = useState<string | null>(null); // Add error state
   const toast = useToast();
 
   // Location filter state - using LocationResult type
@@ -58,7 +62,7 @@ const Cafes = () => {
     try {
       const userString = localStorage.getItem("currentUser");
       if (!userString) return null;
-      
+
       const user = JSON.parse(userString);
       return user ? { ...user, id: user.id.toString() } : null;
     } catch (error) {
@@ -66,25 +70,281 @@ const Cafes = () => {
       return null;
     }
   };
-  
-  const currentUser = getCurrentUser();
 
-  // Get user ID from authentication or session
-  const getUserId = async () => {
-    try {
-      const currentUser = localStorage.getItem("currentUser");
-      if (currentUser) {
-        const user = JSON.parse(currentUser);
-        setUserId(user.id);
-      } else {
-        setUserId(1);
-      }
-    } catch (error) {
-      console.error("Error getting user ID:", error);
-      setUserId(1);
+  const currentUser = getCurrentUser();
+  const [userId, setUserId] = useState<number | null>(null);
+
+  // Debug logging
+  const debug = (message: string, data?: any) => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[DEBUG] ${message}`, data || "");
     }
   };
 
+  // User ID fetch
+  const getUserId = useCallback(async () => {
+    try {
+      debug("Attempting to get user ID");
+
+      const config = {
+        timeout: 3000,
+        withCredentials: true,
+      };
+
+      const response = await Axios.get(
+        "https://cafechronicles.vercel.app/api/auth/me",
+        config
+      );
+
+      if (response.data?.id) {
+        debug("User ID retrieved", response.data.id);
+        setUserId(response.data.id);
+        return;
+      }
+
+      debug("No user ID found in response");
+      setUserId(null);
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to use bookmarks",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      debug("Error in getUserId", error);
+      setUserId(null);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    getUserId();
+  }, [getUserId]);
+
+  // Data fetching
+  const getData = useCallback(async () => {
+    try {
+      debug("Fetching cafes");
+      setIsLoading(true);
+      setError(null);
+
+      const response = await Axios.get(CAFE_API_ROUTE, {
+        timeout: 10000,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!Array.isArray(response.data)) {
+        throw new Error("Invalid data format received");
+      }
+
+      setData(response.data);
+      debug("Cafes fetched successfully", response.data.length);
+    } catch (error) {
+      debug("Error fetching cafes", error);
+      setError(`Failed to fetch cafes: ${error.message}`);
+      setData([]);
+
+      toast({
+        title: "Error loading cafes",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [CAFE_API_ROUTE, toast]);
+
+  // Bookmarks fetching
+  const getBookmarks = useCallback(async () => {
+    if (!userId) {
+      debug("No user ID, clearing bookmarks");
+      setBookmarks([]);
+      return;
+    }
+
+    try {
+      debug("Fetching bookmarks for user", userId);
+
+      const response = await Axios.get(`${BOOKMARK_API_ROUTE}/user/${userId}`, {
+        withCredentials: true,
+        timeout: 5000,
+      });
+
+      setBookmarks(response.data || []);
+      debug("Bookmarks fetched", response.data?.length);
+    } catch (error) {
+      debug("Error fetching bookmarks", error);
+      setBookmarks([]);
+
+      if (error.code !== "ECONNABORTED") {
+        toast({
+          title: "Could not load bookmarks",
+          description: "Bookmarks feature temporarily unavailable",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  }, [userId, BOOKMARK_API_ROUTE, toast]);
+
+  // Initial data loading
+  useEffect(() => {
+    const loadData = async () => {
+      await getUserId();
+      if (userId !== null) {
+        await getData();
+        await getBookmarks();
+      }
+    };
+
+    loadData();
+  }, [getUserId, userId, getData, getBookmarks]);
+
+  // Bookmark handling
+  const handleBookmark = async (cafeId: number) => {
+    if (!userId) {
+      toast({
+        title: "Please log in to bookmark",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      const isBookmarked = bookmarks.some((b) => b.cafe_id === cafeId);
+      const url = `${BOOKMARK_API_ROUTE}/user/${userId}/cafe/${cafeId}`;
+
+      if (isBookmarked) {
+        await Axios.delete(url, { withCredentials: true });
+        toast({ title: "Bookmark removed", status: "info", duration: 2000 });
+      } else {
+        await Axios.post(
+          BOOKMARK_API_ROUTE,
+          { user_id: userId, cafe_id: cafeId },
+          { withCredentials: true }
+        );
+        toast({ title: "Café bookmarked", status: "success", duration: 2000 });
+      }
+
+      await getBookmarks();
+    } catch (error) {
+      debug("Error handling bookmark", error);
+      toast({
+        title: "Error updating bookmark",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // const isBookmarked = (cafeId: number) => {
+  //   return bookmarks.some((bookmark: Bookmark) => bookmark.cafe_id === cafeId);
+  // };
+
+  const getBookmarkedCafes = (): CafeType[] => {
+    if (!data || !bookmarks.length) return [];
+
+    const bookmarkedCafeIds = bookmarks.map(
+      (bookmark: Bookmark) => bookmark.cafe_id
+    );
+    return data.filter((cafe: CafeType) => bookmarkedCafeIds.includes(cafe.id));
+  };
+
+  // Location filter handlers
+  const handleApplyLocationFilter = useCallback(
+    (location: LocationResult, radius: number) => {
+      console.log("Location filter applied:", location, "Radius:", radius);
+      setUserLocation(location);
+      setFilterRadius(radius);
+    },
+    []
+  );
+
+  const handleClearLocationFilter = useCallback(() => {
+    console.log("Location filter cleared");
+    setUserLocation(null);
+  }, []);
+
+  // Enhanced filtering logic
+  const filteredCafes = (() => {
+    if (!data) {
+      console.log("No data available for filtering");
+      return [];
+    }
+
+    const cafesToFilter = showBookmarked ? getBookmarkedCafes() : data;
+    console.log("Cafes to filter:", cafesToFilter.length);
+
+    // Apply search filter
+    let filtered = searchTerm
+      ? cafesToFilter.filter((cafe: CafeType) => {
+          const nameMatch = cafe.cafeName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          const locationMatch = cafe.cafeLocation
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
+          return nameMatch || locationMatch;
+        })
+      : cafesToFilter;
+
+    console.log("After search filter:", filtered.length);
+
+    // Apply location filter
+    if (userLocation) {
+      filtered = filtered.filter((cafe: CafeType) => {
+        if (!cafe.lat || !cafe.lng) return false;
+
+        const distance = calculateDistance(
+          userLocation.coordinates.lat,
+          userLocation.coordinates.lng,
+          parseFloat(cafe.lat.toString()),
+          parseFloat(cafe.lng.toString())
+        );
+
+        return distance <= filterRadius;
+      });
+      console.log("After location filter:", filtered.length);
+    }
+
+    console.log("Final filtered cafes:", filtered);
+    return filtered;
+  })();
+
+  useEffect(() => {
+    getUserId();
+  }, [getUserId]);
+
+  // Use effects with better dependency management
+  useEffect(() => {
+    console.log("User ID changed:", userId);
+    if (userId !== null) {
+      // Fetch both data and bookmarks when user ID is available
+      getData();
+      getBookmarks();
+    } else {
+      // Clear data when no user
+      setData([]);
+      setBookmarks([]);
+    }
+  }, [userId, getBookmarks, getData]); // Only depend on userId
+
+  // Simplified useEffect to avoid circular dependencies
+  useEffect(() => {
+    // This effect runs when getBookmarks changes, but we want to avoid circular calls
+    if (userId && data === null && !isLoading) {
+      console.log("Data is null but user exists, fetching data");
+      getData();
+    }
+  }, [getBookmarks, userId, data, isLoading, getData]);
+
+  // Your other handler functions remain the same...
   const handleEdit = async () => {
     if (!cafeName) return;
 
@@ -184,223 +444,6 @@ const Cafes = () => {
     setLocationError("");
   };
 
-  const getData = async () => {
-    try {
-      const response = await Axios.get(CAFE_API_ROUTE);
-      console.log("API Response:", response.data); // Debug log
-      setData(response.data);
-    } catch (error) {
-      console.error("Error fetching cafes:", error);
-    }
-  };
-
-  const getBookmarks = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const response = await Axios.get(`${BOOKMARK_API_ROUTE}user/${userId}`);
-      setBookmarks(response.data);
-    } catch (error) {
-      console.error("Error fetching bookmarks:", error);
-    }
-  }, [userId]);
-
-  const handleBookmark = async (cafeId: number) => {
-    if (!userId) return;
-    try {
-      const isBookmarked = bookmarks.some(
-        (bookmark: Bookmark) => bookmark.cafe_id === cafeId
-      );
-
-      if (isBookmarked) {
-        await Axios.delete(
-          `${BOOKMARK_API_ROUTE}user/${userId}/cafe/${cafeId}`
-        );
-        toast({
-          title: "Bookmark removed",
-          status: "info",
-          duration: 2000,
-          isClosable: true,
-        });
-      } else {
-        await Axios.post(BOOKMARK_API_ROUTE, {
-          user_id: userId,
-          cafe_id: cafeId,
-        });
-        toast({
-          title: "Café bookmarked",
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-        });
-      }
-
-      await getBookmarks();
-    } catch (error) {
-      console.error("Error handling bookmark:", error);
-      toast({
-        title: "Error updating bookmark",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const isBookmarked = (cafeId: number) => {
-    return bookmarks.some((bookmark: Bookmark) => bookmark.cafe_id === cafeId);
-  };
-
-  const getBookmarkedCafes = (): CafeType[] => {
-    if (!data || !bookmarks.length) return [];
-
-    const bookmarkedCafeIds = bookmarks.map(
-      (bookmark: Bookmark) => bookmark.cafe_id
-    );
-    return data.filter((cafe: CafeType) => bookmarkedCafeIds.includes(cafe.id));
-  };
-
-  // Location filter handlers
-  const handleApplyLocationFilter = useCallback(
-    (location: LocationResult, radius: number) => {
-      console.log("Location filter applied:", location, "Radius:", radius);
-      setUserLocation(location);
-      setFilterRadius(radius);
-    },
-    []
-  );
-
-  const handleClearLocationFilter = useCallback(() => {
-    console.log("Location filter cleared");
-    setUserLocation(null);
-  }, []);
-
-  // Enhanced filtering logic with better debugging
-  const filteredCafes = (() => {
-    const cafesToFilter = showBookmarked ? getBookmarkedCafes() : data || [];
-
-    console.log("Starting filter process:");
-    console.log("- Total cafes:", cafesToFilter.length);
-    console.log("- Search term:", searchTerm);
-    console.log("- User location:", userLocation);
-    console.log("- Filter radius:", filterRadius);
-
-    // First filter by search term if it exists
-    let filtered = searchTerm
-      ? cafesToFilter.filter((cafe: CafeType) => {
-          const nameMatch = cafe.cafeName
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-          const locationMatch = cafe.cafeLocation
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
-          return nameMatch || locationMatch;
-        })
-      : cafesToFilter;
-
-    console.log("- After search filter:", filtered.length);
-
-    // Then filter by location if userLocation is set
-    if (userLocation) {
-      console.log("Applying location filter...");
-
-      const locationFiltered = filtered.filter((cafe: CafeType) => {
-        console.log(`Checking cafe: ${cafe.cafeName}`);
-        console.log(`- Cafe location: ${cafe.cafeLocation}`);
-        console.log(`- Cafe coordinates: lat=${cafe.lat}, lng=${cafe.lng}`);
-
-        // Check if cafe has coordinates
-        if (!cafe.lat || !cafe.lng) {
-          console.log(
-            `- No coordinates for ${cafe.cafeName}, excluding from location filter`
-          );
-          return false;
-        }
-
-        const cafeLat = parseFloat(cafe.lat.toString());
-        const cafeLng = parseFloat(cafe.lng.toString());
-
-        console.log(`- Parsed coordinates: lat=${cafeLat}, lng=${cafeLng}`);
-
-        if (isNaN(cafeLat) || isNaN(cafeLng)) {
-          console.log(`- Invalid coordinates for ${cafe.cafeName}`);
-          return false;
-        }
-
-        const distance = calculateDistance(
-          userLocation.coordinates.lat,
-          userLocation.coordinates.lng,
-          cafeLat,
-          cafeLng
-        );
-
-        console.log(
-          `- Distance: ${distance.toFixed(2)}km (limit: ${filterRadius}km)`
-        );
-        console.log(`- Within range: ${distance <= filterRadius}`);
-
-        return distance <= filterRadius;
-      });
-
-      console.log("- After location filter:", locationFiltered.length);
-      filtered = locationFiltered;
-    }
-
-    // Sort by relevance
-    const sortedResults = filtered
-      .map((cafe: CafeType) => {
-        const name = cafe.cafeName.toLowerCase();
-        const location = cafe.cafeLocation.toLowerCase();
-        const search = searchTerm.toLowerCase();
-
-        let score = 0;
-
-        // Name matches
-        if (name === search) score = 1000;
-        else if (name.startsWith(search)) score = 100;
-        else if (name.includes(` ${search}`) || name.includes(`${search} `))
-          score = 50;
-        else if (name.includes(search)) score = 10;
-
-        // Location matches
-        if (location.includes(search)) score += 20;
-
-        // Prefer shorter names
-        score += Math.max(0, 50 - name.length);
-
-        // Boost score if within filter radius
-        if (userLocation && cafe.lat && cafe.lng) {
-          const distance = calculateDistance(
-            userLocation.coordinates.lat,
-            userLocation.coordinates.lng,
-            parseFloat(cafe.lat.toString()),
-            parseFloat(cafe.lng.toString())
-          );
-          if (distance <= filterRadius) {
-            score += 30;
-          }
-        }
-        return { ...cafe, relevanceScore: score };
-      })
-      .sort(
-        (a: CafeType, b: CafeType) =>
-          (b.relevanceScore || 0) - (a.relevanceScore || 0)
-      );
-
-    console.log("- Final filtered results:", sortedResults.length);
-    return sortedResults;
-  })();
-
-  useEffect(() => {
-    getUserId();
-  }, []);
-
-  useEffect(() => {
-    if (userId) {
-      getData();
-      getBookmarks();
-    }
-  }, [userId, getBookmarks]);
-
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCafeLocation(e.target.value);
     if (locationError) {
@@ -427,17 +470,10 @@ const Cafes = () => {
     setLocationError("");
   };
 
-  const refetchCafes = useCallback(() => {
-    getData();
-    getBookmarks();
-  }, [getBookmarks]);
-
-  useEffect(() => {
-    if (userId) {
-      getData();
-      getBookmarks();
-    }
-  }, [userId, getBookmarks, refetchCafes]);
+  // const refetchCafes = useCallback(() => {
+  //   getData();
+  //   getBookmarks();
+  // }, [getData, getBookmarks]);
 
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
@@ -462,7 +498,7 @@ const Cafes = () => {
         userLocation={userLocation}
         filterRadius={filterRadius}
         onLocationModalOpen={onLocationModalOpen}
-        onClearLocationFilter={handleClearLocationFilter}
+        onClearLocationFilter={() => setUserLocation(null)}
       />
 
       <CafeList
@@ -473,18 +509,15 @@ const Cafes = () => {
         searchTerm={searchTerm}
         userLocation={userLocation}
         filterRadius={filterRadius}
-        isBookmarked={isBookmarked}
+        isBookmarked={(id) => bookmarks.some((b) => b.cafe_id === id)}
         onBookmark={handleBookmark}
         onEdit={handleEditIndex}
         onDelete={handleDelete}
-        onReviewSubmit={(cafeId) => setReviewingCafeId(cafeId)}
+        onReviewSubmit={setReviewingCafeId}
       />
 
       {reviewingCafeId && (
-      <CafeReviews 
-        cafeId={reviewingCafeId} 
-        currentUserId={currentUser?.id} 
-      />
+        <CafeReviews cafeId={reviewingCafeId} currentUserId={userId} />
       )}
 
       {!showBookmarked && (
@@ -499,7 +532,7 @@ const Cafes = () => {
         </Button>
       )}
 
-      {/* Edit Modal */}
+      {/* Your modals remain the same... */}
       <CafeEditModal
         isOpen={isOpen}
         onClose={onClose}
@@ -514,7 +547,6 @@ const Cafes = () => {
         handleLocationChange={handleLocationChange}
       />
 
-      {/* Add Modal */}
       <CafeAddModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
@@ -528,7 +560,6 @@ const Cafes = () => {
         handleLocationChange={handleLocationChange}
       />
 
-      {/* Location Filter Modal */}
       <LocationFilterModal
         isOpen={isLocationModalOpen}
         onClose={onLocationModalClose}
@@ -542,4 +573,5 @@ const Cafes = () => {
     </Flex>
   );
 };
+
 export default Cafes;
