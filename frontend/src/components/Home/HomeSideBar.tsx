@@ -15,38 +15,14 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import {
-  FiBook,
-  FiMap,
-  FiAward,
-  FiCoffee,
-  FiUsers,
-  FiEdit3,
-  FiSettings,
-} from "react-icons/fi";
-import UserCard from "./UserCard.tsx";
+import { FiCoffee, FiUsers, FiSettings } from "react-icons/fi";
 
-const Sidebar = () => {
+const HomeSidebar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [activeItem, setActiveItem] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const menuItems = [
-    {
-      label: "My Passport",
-      icon: FiBook,
-      route: "/passport",
-    },
-    {
-      label: "My Routes",
-      icon: FiMap,
-      route: "/routes",
-    },
-    {
-      label: "Achievements",
-      icon: FiAward,
-      route: "/achievements",
-    },
     {
       label: "Discover Cafés",
       icon: FiCoffee,
@@ -56,16 +32,6 @@ const Sidebar = () => {
       label: "Our Community",
       icon: FiUsers,
       route: "/community",
-    },
-    {
-      label: "My Journal",
-      icon: FiEdit3,
-      route: "/journal",
-    },
-    {
-      label: "My Account",
-      icon: FiEdit3,
-      route: "/account",
     },
   ];
 
@@ -127,7 +93,6 @@ const Sidebar = () => {
               >
                 Café Chronicles
               </Text>
-              <UserCard />
             </Box>
           </DrawerHeader>
 
@@ -241,4 +206,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default HomeSidebar;

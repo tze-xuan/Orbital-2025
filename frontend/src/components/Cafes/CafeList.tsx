@@ -1,21 +1,21 @@
 import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeType.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
-import CafeCard from "./CafeCard";
+import CafeCard from "./CafeCard.tsx";
 
 interface CafeListProps {
   cafes: CafeType[];
-  user:{ id: string } | null;
+  user?: { id: string } | null;
   currentUserId?: string;
-  showBookmarked: boolean;
+  showBookmarked?: boolean;
   searchTerm: string;
   userLocation: LocationResult | null;
   filterRadius: number;
-  isBookmarked: (cafeId: number) => boolean;
-  onBookmark: (cafeId: number) => void;
-  onEdit: (index: number) => void;
-  onDelete: (cafeId: number) => void;
-  onReviewSubmit: (cafeId: number) => void;
+  isBookmarked?: (cafeId: number) => boolean;
+  onBookmark?: (cafeId: number) => void;
+  onEdit?: (index: number) => void;
+  onDelete?: (cafeId: number) => void;
+  onReviewSubmit?: (cafeId: number) => void;
 }
 
 const CafeList = ({

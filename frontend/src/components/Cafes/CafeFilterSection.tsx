@@ -13,9 +13,9 @@ import { FaLocationArrow, FaTimes } from "react-icons/fa";
 import { LocationResult } from "./LocationFilterModal.tsx";
 
 interface CafeFilterSectionProps {
-  showBookmarked: boolean;
-  setShowBookmarked: (show: boolean) => void;
-  bookmarksCount: number;
+  showBookmarked?: boolean;
+  setShowBookmarked?: (show: boolean) => void;
+  bookmarksCount?: number;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   userLocation: LocationResult | null;
@@ -33,7 +33,7 @@ const CafeFilterSection = ({
   userLocation,
   filterRadius,
   onLocationModalOpen,
-  onClearLocationFilter
+  onClearLocationFilter,
 }: CafeFilterSectionProps) => {
   return (
     <>

@@ -1,8 +1,8 @@
 import { Flex, Text, Button } from "@chakra-ui/react";
-import { MapWithoutInput } from "../components/Home/MapWithoutInput.tsx";
-import Sidebar from "../components/Home/Sidebar.tsx";
-import { NavButton } from "../components/Buttons.tsx";
-import LogoutButton from "../pages/Logout.tsx";
+import { MapWithoutInput } from "../../components/Home/MapWithoutInput.tsx";
+import DashboardSideBar from "../../components/Home/DashboardSideBar.tsx";
+import { NavButton } from "../../components/Buttons.tsx";
+import LogoutButton from "../NotLoggedIn/Logout.tsx";
 
 const Dashboard = () => {
   return (
@@ -19,7 +19,7 @@ const Dashboard = () => {
         justifyContent="center"
         marginTop="25px"
       >
-        <Sidebar />
+        <DashboardSideBar />
         <Button
           variant="link"
           fontFamily="afacad"

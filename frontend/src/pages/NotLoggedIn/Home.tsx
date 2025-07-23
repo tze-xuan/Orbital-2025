@@ -1,8 +1,9 @@
 import { Flex, Button, Image, Wrap, Text, Box } from "@chakra-ui/react";
-import { NavButton } from "../components/Buttons.tsx";
-import { HomePosts } from "../components/Home/HomePosts.tsx";
-import { MapWithoutInput } from "../components/Home/MapWithoutInput.tsx";
-import Waffles from "../images/wafflesthecat.jpg";
+import { NavButton } from "../../components/Buttons.tsx";
+import { HomePosts } from "../../components/Home/HomePosts.tsx";
+import { MapWithoutInput } from "../../components/Home/MapWithoutInput.tsx";
+import HomeSideBar from "../../components/Home/HomeSideBar.tsx";
+import Waffles from "../../images/wafflesthecat.jpg";
 
 const Home = () => {
   return (
@@ -19,8 +20,10 @@ const Home = () => {
           gap="10vw"
           paddingY="5vh"
         >
-          <NavButton>button</NavButton>
-          <NavButton>button</NavButton>
+          <HomeSideBar />
+          {/* <NavButton as="a" href="/discovercafes">
+            Discover Cafés
+          </NavButton> */}
           <Button
             variant="plain"
             fontFamily="darumadrop"

@@ -1,5 +1,3 @@
-// Enhanced debugging version of your Cafes component
-
 import {
   Button,
   Flex,
@@ -12,15 +10,15 @@ import Axios from "axios";
 import LocationFilterModal, {
   LocationResult,
   calculateDistance,
-} from "../components/Cafes/LocationFilterModal.tsx";
-import { CafeType } from "../interfaces/CafeType.tsx";
-import { Bookmark } from "../interfaces/BookmarkInterface.tsx";
-import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
-import CafeList from "../components/Cafes/CafeList.tsx";
-import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
-import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
+} from "../../components/Cafes/LocationFilterModal.tsx";
+import { CafeType } from "../../interfaces/CafeType.tsx";
+import { Bookmark } from "../../interfaces/BookmarkInterface.tsx";
+import CafeFilterSection from "../../components/Cafes/CafeFilterSection.tsx";
+import CafeList from "../../components/Cafes/CafeList.tsx";
+import CafeEditModal from "../../components/Cafes/CafeEditModal.tsx";
+import CafeAddModal from "../../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
-import CafeReviews from "../components/Cafes/ReviewList.tsx";
+import CafeReviews from "../../components/Cafes/ReviewList.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
