@@ -13,9 +13,39 @@ const pool = mysql.createPool({
   port: port,
   database: db,
   waitForConnections: true,
-  connectionLimit: 5,
-  idleTimeout: 10000, // Close idle connections after 10s
-  queueLimit: 0, // Unlimited queued requests
+  connectionLimit: 3,
+  maxIdle: 2, // Maximum idle connections
+  idleTimeout: 5000, // Close idle connections after 5s (reduced from 10s)
+  queueLimit: 0,
+  acquireTimeout: 10000, // Timeout for getting connection from pool
+  timeout: 5000, // Query timeout
+  reconnect: true,
+});
+
+// Add connection pool event handlers for debugging
+pool.on("connection", (connection) => {
+  console.log("New connection established as id " + connection.threadId);
+});
+
+pool.on("error", (err) => {
+  console.error("Database pool error:", err);
+  if (err.code === "PROTOCOL_CONNECTION_LOST") {
+    // Handle connection lost
+    console.log("Database connection lost. Pool will reconnect.");
+  }
+});
+
+// Graceful shutdown handler
+process.on("SIGINT", async () => {
+  console.log("Closing database pool...");
+  await pool.end();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  console.log("Closing database pool...");
+  await pool.end();
+  process.exit(0);
 });
 
 module.exports = pool;

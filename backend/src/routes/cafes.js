@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
 // Get all
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM cafes");
+    const [rows] = await pool.execute("SELECT * FROM cafes");
 
     // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
@@ -73,7 +73,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
+    const [rows] = await pool.execute("SELECT * FROM cafes WHERE id = ?", [id]);
 
     // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
@@ -113,15 +113,16 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ error: "Coordinates has issue" });
     }
 
-    await pool.query(
+    await pool.execute(
       "UPDATE cafes SET cafeName = ?, cafeLocation = ?, lat = ?, lng = ? WHERE id = ?",
       [cafeName, cafeLocation, lat, lng, id]
     );
 
     // Fetch the updated record to return
-    const [updatedCafe] = await pool.query("SELECT * FROM cafes WHERE id = ?", [
-      id,
-    ]);
+    const [updatedCafe] = await pool.execute(
+      "SELECT * FROM cafes WHERE id = ?",
+      [id]
+    );
     res.json({
       ...updatedCafe[0],
       lat: Number(updatedCafe[0].lat),
@@ -137,7 +138,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM cafes WHERE id = ?", [id]);
+    await pool.execute("DELETE FROM cafes WHERE id = ?", [id]);
     res.json({ success: true, message: "Café deleted" }); // Simplified response
   } catch (error) {
     console.error(error);
@@ -149,7 +150,7 @@ router.delete("/:id", async (req, res) => {
 // router.post("/", async (req, res) => {
 //   try {
 //     const { cafeName, cafeLocation } = req.body;
-//     await pool.query(
+//     await pool.execute(
 //       "INSERT INTO cafes (cafeName, cafeLocation) VALUES (?, ?)",
 //       [cafeName, cafeLocation]
 //     );
@@ -163,7 +164,7 @@ router.delete("/:id", async (req, res) => {
 // //GET ALL
 // router.get("/", async (req, res) => {
 //   try {
-//     const cafes = await pool.query("SELECT * FROM cafes");
+//     const cafes = await pool.execute("SELECT * FROM cafes");
 //     res.json(cafes[0]);
 //   } catch (err) {
 //     console.error(err.message);
@@ -175,7 +176,7 @@ router.delete("/:id", async (req, res) => {
 // router.get("/:id", async (req, res) => {
 //   try {
 //     const { id } = req.params;
-//     const cafes = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
+//     const cafes = await pool.execute("SELECT * FROM cafes WHERE id = ?", [id]);
 //     res.json(cafes);
 //   } catch (err) {
 //     console.error(err.message);
@@ -189,7 +190,7 @@ router.delete("/:id", async (req, res) => {
 //     const { id } = req.params;
 //     const { cafeName, cafeLocation } = req.body;
 
-//     await pool.query(
+//     await pool.execute(
 //       "UPDATE cafes SET cafeName = ?, cafeLocation = ? WHERE id = ?",
 //       [cafeName, cafeLocation, id]
 //     );
@@ -205,7 +206,7 @@ router.delete("/:id", async (req, res) => {
 //   try {
 //     const { id } = req.params;
 
-//     await pool.query("DELETE FROM cafes WHERE id = ?", [id]);
+//     await pool.execute("DELETE FROM cafes WHERE id = ?", [id]);
 //     res.json("Café deleted");
 //   } catch (err) {
 //     console.error(err.message);

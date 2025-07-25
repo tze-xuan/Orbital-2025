@@ -30,7 +30,7 @@ router.use((req, res, next) => {
 router.get("/user/:userId", isAuthenticated, async (req, res) => {
   try {
     const { userId } = req.params;
-    const [rows] = await pool.query(
+    const [rows] = await pool.execute(
       `SELECT b.*, c.cafeName, c.cafeLocation, c.lat, c.lng 
        FROM bookmarks b 
        JOIN cafes c ON b.cafe_id = c.id 
@@ -52,7 +52,7 @@ router.post("/", isAuthenticated, async (req, res) => {
     const { user_id, cafe_id } = req.body;
 
     // Check if bookmark already exists
-    const [existing] = await pool.query(
+    const [existing] = await pool.execute(
       "SELECT * FROM bookmarks WHERE user_id = ? AND cafe_id = ?",
       [user_id, cafe_id]
     );
@@ -102,7 +102,7 @@ router.delete(
 // Get all bookmarks (admin view)
 router.get("/", isAuthenticated, async (req, res) => {
   try {
-    const [rows] = await pool.query(
+    const [rows] = await pool.execute(
       `SELECT b.*, c.cafeName, c.cafeLocation 
        FROM bookmarks b 
        JOIN cafes c ON b.cafe_id = c.id 
