@@ -10,8 +10,10 @@ const mapsClient = new Client({});
 
 // Save cafe and get coordinates
 router.post("/", async (req, res) => {
+  let connection;
   try {
     const { cafeName, cafeLocation } = req.body;
+    connection = await pool.getConnection();
 
     // First geocode the location
     const geocodeResponse = await mapsClient.geocode({
@@ -32,7 +34,7 @@ router.post("/", async (req, res) => {
     }
 
     // Save to database
-    await pool.execute(
+    await connection.execute(
       "INSERT INTO cafes (cafeName, cafeLocation, lat, lng) VALUES (?, ?, ?, ?)",
       [cafeName, cafeLocation, lat, lng]
     );
@@ -45,17 +47,19 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    res.json(error);
+    res.status(500).json(error);
+  } finally {
+    if (connection) connection.release();
   }
 });
 
-// API endpoints
 // Get all
 router.get("/", async (req, res) => {
+  let connection;
   try {
-    const [rows] = await pool.execute("SELECT * FROM cafes");
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute("SELECT * FROM cafes");
 
-    // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
       ...cafe,
       lat: Number(cafe.lat),
@@ -66,16 +70,22 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Get by ID
 router.get("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
-    const [rows] = await pool.execute("SELECT * FROM cafes WHERE id = ?", [id]);
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(
+      "SELECT * FROM cafes WHERE id = ?",
+      [id]
+    );
 
-    // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
       ...cafe,
       lat: Number(cafe.lat),
@@ -86,14 +96,18 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Update
 router.put("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
     const { cafeName, cafeLocation } = req.body;
+    connection = await pool.getConnection();
 
     // First geocode the location
     const geocodeResponse = await mapsClient.geocode({
@@ -113,13 +127,13 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ error: "Coordinates has issue" });
     }
 
-    await pool.execute(
+    await connection.execute(
       "UPDATE cafes SET cafeName = ?, cafeLocation = ?, lat = ?, lng = ? WHERE id = ?",
       [cafeName, cafeLocation, lat, lng, id]
     );
 
     // Fetch the updated record to return
-    const [updatedCafe] = await pool.execute(
+    const [updatedCafe] = await connection.execute(
       "SELECT * FROM cafes WHERE id = ?",
       [id]
     );
@@ -131,18 +145,24 @@ router.put("/:id", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to update café" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Delete
 router.delete("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
-    await pool.execute("DELETE FROM cafes WHERE id = ?", [id]);
-    res.json({ success: true, message: "Café deleted" }); // Simplified response
+    connection = await pool.getConnection();
+    await connection.execute("DELETE FROM cafes WHERE id = ?", [id]);
+    res.json({ success: true, message: "Café deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to delete café" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

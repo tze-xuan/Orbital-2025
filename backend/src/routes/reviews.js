@@ -32,41 +32,44 @@ router.post("/submit", isAuthenticated, async (req, res) => {
   const { cafe_id, rating, avgPricePerPax } = req.body;
   const comment = req.body.comment || null;
   const user_id = req.user.id;
+  let connection;
 
-  // Validate required fields
   if (!cafe_id || !rating || avgPricePerPax === undefined) {
     return res
       .status(400)
       .json({ error: "Cafe ID, rating and price are required" });
   }
 
-  // Validate rating (1-5)
   if (rating < 1 || rating > 5) {
     return res.status(400).json({ error: "Invalid rating" });
   }
 
-  // Validate price
   if (isNaN(avgPricePerPax) || avgPricePerPax < 0) {
     return res.status(400).json({ error: "Invalid price value" });
   }
 
   try {
-    await pool.execute(
+    connection = await pool.getConnection();
+    await connection.execute(
       "INSERT INTO reviews (user_id, cafe_id, rating, comment, avgPricePerPax) VALUES (?, ?, ?, ?, ?)",
       [user_id, cafe_id, rating, comment, avgPricePerPax]
     );
     res.status(201).json({ message: "Review submitted" });
   } catch (err) {
     res.status(500).json({ error: "Database error" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Get reviews
 router.get(["/", "/:cafe_id"], async (req, res) => {
   const cafe_id = parseInt(req.params.cafe_id || req.query.cafe_id);
+  let connection;
 
   try {
-    const [reviews] = await pool.execute(
+    connection = await pool.getConnection();
+    const [reviews] = await connection.execute(
       `SELECT r.*, u.username
       FROM reviews r
       JOIN users u on r.user_id = u.id
@@ -75,7 +78,7 @@ router.get(["/", "/:cafe_id"], async (req, res) => {
       [cafe_id]
     );
 
-    const [avgResult] = await pool.execute(
+    const [avgResult] = await connection.execute(
       `SELECT 
          AVG(rating) AS averageRating,
          MIN(avgPricePerPax) AS minPrice,
@@ -86,7 +89,6 @@ router.get(["/", "/:cafe_id"], async (req, res) => {
       [cafe_id]
     );
 
-    // Handle empty results
     const hasReviews =
       avgResult.length > 0 && avgResult[0].averageRating !== null;
 
@@ -106,32 +108,34 @@ router.get(["/", "/:cafe_id"], async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: "Database error" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Edit reviews
 router.put("/:id", isAuthenticated, async (req, res) => {
+  let connection;
   try {
     const { comment } = req.body;
     const reviewId = req.params.id;
+    connection = await pool.getConnection();
 
-    // Verify user owns the review
-    const [review] = await pool.execute("SELECT * FROM reviews WHERE id = ?", [
-      reviewId,
-    ]);
+    const [review] = await connection.execute(
+      "SELECT * FROM reviews WHERE id = ?",
+      [reviewId]
+    );
     if (!review.length)
       return res.status(404).json({ error: "Review not found" });
     if (review[0].user_id !== req.user.id)
       return res.status(403).json({ error: "Unauthorized" });
 
-    // Update the review
-    await pool.execute("UPDATE reviews SET comment = ? WHERE id = ?", [
+    await connection.execute("UPDATE reviews SET comment = ? WHERE id = ?", [
       comment,
       reviewId,
     ]);
 
-    // Fetch updated review with username
-    const [updatedReview] = await pool.execute(
+    const [updatedReview] = await connection.execute(
       `SELECT r.*, u.username 
        FROM reviews r
        JOIN users u ON r.user_id = u.id
@@ -143,30 +147,35 @@ router.put("/:id", isAuthenticated, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Delete reviews
 router.delete("/:id", isAuthenticated, async (req, res) => {
+  let connection;
   try {
     const reviewId = req.params.id;
+    connection = await pool.getConnection();
 
-    // Verify user owns the review
-    const [review] = await pool.execute("SELECT * FROM reviews WHERE id = ?", [
-      reviewId,
-    ]);
+    const [review] = await connection.execute(
+      "SELECT * FROM reviews WHERE id = ?",
+      [reviewId]
+    );
     if (!review.length)
       return res.status(404).json({ error: "Review not found" });
     if (review[0].user_id !== req.user.id)
       return res.status(403).json({ error: "Unauthorized" });
 
-    // Delete the review
-    await pool.execute("DELETE FROM reviews WHERE id = ?", [reviewId]);
+    await connection.execute("DELETE FROM reviews WHERE id = ?", [reviewId]);
 
     res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

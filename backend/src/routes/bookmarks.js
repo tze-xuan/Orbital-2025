@@ -28,9 +28,11 @@ router.use((req, res, next) => {
 
 // Get all bookmarks for a specific user
 router.get("/user/:userId", isAuthenticated, async (req, res) => {
+  let connection;
   try {
     const { userId } = req.params;
-    const [rows] = await pool.execute(
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(
       `SELECT b.*, c.cafeName, c.cafeLocation, c.lat, c.lng 
        FROM bookmarks b 
        JOIN cafes c ON b.cafe_id = c.id 
@@ -43,16 +45,20 @@ router.get("/user/:userId", isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error fetching bookmarks:", error);
     res.status(500).json({ error: "Failed to fetch bookmarks" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Add a bookmark
 router.post("/", isAuthenticated, async (req, res) => {
+  let connection;
   try {
     const { user_id, cafe_id } = req.body;
+    connection = await pool.getConnection();
 
     // Check if bookmark already exists
-    const [existing] = await pool.execute(
+    const [existing] = await connection.execute(
       "SELECT * FROM bookmarks WHERE user_id = ? AND cafe_id = ?",
       [user_id, cafe_id]
     );
@@ -62,7 +68,7 @@ router.post("/", isAuthenticated, async (req, res) => {
     }
 
     // Add bookmark
-    await pool.execute(
+    await connection.execute(
       "INSERT INTO bookmarks (user_id, cafe_id) VALUES (?, ?)",
       [user_id, cafe_id]
     );
@@ -71,6 +77,8 @@ router.post("/", isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error adding bookmark:", error);
     res.status(500).json({ error: "Failed to add bookmark" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -79,10 +87,11 @@ router.delete(
   "/user/:userId/cafe/:cafeId",
   isAuthenticated,
   async (req, res) => {
+    let connection;
     try {
       const { userId, cafeId } = req.params;
-
-      const [result] = await pool.execute(
+      connection = await pool.getConnection();
+      const [result] = await connection.execute(
         "DELETE FROM bookmarks WHERE user_id = ? AND cafe_id = ?",
         [userId, cafeId]
       );
@@ -95,14 +104,18 @@ router.delete(
     } catch (error) {
       console.error("Error removing bookmark:", error);
       res.status(500).json({ error: "Failed to remove bookmark" });
+    } finally {
+      if (connection) connection.release();
     }
   }
 );
 
 // Get all bookmarks (admin view)
 router.get("/", isAuthenticated, async (req, res) => {
+  let connection;
   try {
-    const [rows] = await pool.execute(
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(
       `SELECT b.*, c.cafeName, c.cafeLocation 
        FROM bookmarks b 
        JOIN cafes c ON b.cafe_id = c.id 
@@ -113,6 +126,8 @@ router.get("/", isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error fetching all bookmarks:", error);
     res.status(500).json({ error: "Failed to fetch bookmarks" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
