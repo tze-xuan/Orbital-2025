@@ -39,7 +39,7 @@ router.post("/signup", async (req, res) => {
 
   try {
     // Insert new user
-    const [result] = await pool.query(
+    const [result] = await pool.execute(
       "INSERT INTO users (username, password) VALUES (?, ?)",
       [normalisedUsername, hashedPassword]
     );
@@ -68,7 +68,7 @@ function checkNotAuthenticated(req, res, next) {
 
 // (4) CHECK-USERNAME ROUTE ------
 router.get("/check-username", async (req, res) => {
-  const { username } = req.query;
+  const { username } = req.execute;
 
   // Validate input
   if (typeof username !== "string") {
@@ -79,9 +79,10 @@ router.get("/check-username", async (req, res) => {
   const normalisedUsername = username.trim().toLowerCase();
 
   try {
-    const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [
-      normalisedUsername,
-    ]);
+    const [users] = await pool.execute(
+      "SELECT * FROM users WHERE username = ?",
+      [normalisedUsername]
+    );
 
     res.json({ available: users.length === 0 });
   } catch (err) {
@@ -152,7 +153,7 @@ router.post("/logout", (req, res) => {
 // GET ALL USERS
 router.get("/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM users");
+    const result = await pool.execute("SELECT * FROM users");
     res.json(result[0]);
   } catch (err) {
     console.error(err);
@@ -164,7 +165,7 @@ router.get("/users", async (req, res) => {
 router.get("/users/:username", async (req, res) => {
   try {
     const { username } = req.params;
-    const users = await pool.query("SELECT * FROM users WHERE username = ?", [
+    const users = await pool.execute("SELECT * FROM users WHERE username = ?", [
       username,
     ]);
     if (!users.length) {
@@ -185,7 +186,7 @@ router.put("/users/:username", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const updateUsers = await pool.query(
+    const updateUsers = await pool.execute(
       "UPDATE users SET password = ? WHERE username = ?",
       [hashedPassword, username]
     );
@@ -202,7 +203,7 @@ router.put("/users/:username", async (req, res) => {
 router.delete("/users/:username", async (req, res) => {
   try {
     const { username } = req.params;
-    const [deleteUsers] = await pool.query(
+    const [deleteUsers] = await pool.execute(
       "DELETE FROM users WHERE username = ?",
       [username]
     );
