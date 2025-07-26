@@ -133,7 +133,7 @@ const CafeCard: React.FC<CafeCardProps> = ({
     <Flex
       direction="column"
       bgColor="white"
-      width="90%"
+      width="80%"
       minH="40vh"
       padding="4vh"
       borderRadius="30px"
