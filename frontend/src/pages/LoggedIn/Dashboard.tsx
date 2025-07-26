@@ -28,7 +28,7 @@ const Dashboard = () => {
           color="#3E405B"
           _hover={{ textColor: "#DC6739", textDecoration: "underline" }}
         >
-          <a href="/cafes">Cafes</a>
+          <a href="/cafes">Cafés</a>
         </Button>
         <Button
           variant="link"

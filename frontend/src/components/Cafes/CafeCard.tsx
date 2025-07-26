@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Flex,
   Text,
+  Image,
   Tooltip,
   IconButton,
   useDisclosure,
@@ -12,15 +13,26 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
-  ModalFooter,
   Box,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  useToast,
 } from "@chakra-ui/react";
-import { StarIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon, StarIcon } from "@chakra-ui/icons";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa";
 import { CafeType } from "../../interfaces/CafeType.tsx";
-import { LocationResult, calculateDistance } from "./LocationFilterModal.tsx";
+import {
+  GeocodingService,
+  LocationResult,
+  calculateDistance,
+} from "./LocationFilterModal.tsx";
 import ReviewForm from "./Review.tsx";
 import CafeReviews from "./ReviewList.tsx";
+import cafePhoto from "../../images/cafePhoto.jpg";
+import cafePhoto2 from "../../images/cafePhoto2.jpeg";
 
 interface CafeCardProps {
   cafe: CafeType;
@@ -40,147 +52,362 @@ const CafeCard: React.FC<CafeCardProps> = ({
   user,
   index,
   isBookmarked,
-  userLocation,
   onBookmark,
   onEdit,
   onDelete,
   onReviewSubmit,
 }: CafeCardProps) => {
-  const {
-    isOpen: isReviewsOpen,
-    onOpen: onReviewsOpen,
-    onClose: onReviewsClose,
-  } = useDisclosure();
-
+  const toast = useToast();
   const {
     isOpen: isReviewFormOpen,
     onOpen: onReviewFormOpen,
     onClose: onReviewFormClose,
   } = useDisclosure();
 
-  const [cafeIdForReviews, setCafeIdForReviews] = useState<
-    string | number | null
-  >(null);
-  const handleViewReviews = () => {
-    setCafeIdForReviews(cafe.id);
-    onReviewsOpen();
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onClose: onDeleteModalClose,
+  } = useDisclosure();
+
+  const [activeTab, setActiveTab] = useState(0);
+  const [reviewsKey, setReviewsKey] = useState(0);
+  const [currentLocation, setCurrentLocation] = useState<LocationResult | null>(
+    null
+  );
+
+  const handleTabChange = (index: number) => {
+    setActiveTab(index);
   };
 
-  const renderStars = (rating) => {
-    return (
-      <Flex>
-        {[...Array(5)].map((_, i) => (
-          <Text
-            key={i}
-            color={i < rating ? "orange.400" : "gray.300"}
-            fontSize="lg"
-          >
-            ★
-          </Text>
-        ))}
-      </Flex>
-    );
+  const handleReviewSubmitSuccess = () => {
+    onReviewFormClose();
+    onReviewSubmit(cafe.id);
+    setReviewsKey((prev) => prev + 1);
+    setActiveTab(2);
   };
 
+  const handleConfirmDelete = () => {
+    onDelete(cafe.id);
+    onDeleteModalClose();
+  };
+
+  const getCurrentLocation =
+    useCallback(async (): Promise<LocationResult | null> => {
+      try {
+        const position = await new Promise<GeolocationPosition>(
+          (resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 300000,
+            });
+          }
+        );
+
+        const { latitude, longitude } = position.coords;
+        const geocodingService = GeocodingService.getInstance();
+        return await geocodingService.reverseGeocode(latitude, longitude);
+      } catch (error) {
+        toast({
+          title: "Location Error",
+          description:
+            error instanceof Error ? error.message : "Failed to get location",
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+        });
+        return null;
+      }
+    }, [toast]);
+
+  useEffect(() => {
+    const fetchLocation = async () => {
+      const location = await getCurrentLocation();
+      setCurrentLocation(location);
+    };
+
+    fetchLocation();
+  }, [getCurrentLocation]);
   return (
     <Flex
       direction="column"
       bgColor="white"
       width="90%"
-      height="30vh"
-      alignItems="center"
-      justifyContent="center"
-      textAlign="center"
-      padding="2vh"
-      borderRadius="40px"
+      minH="40vh"
+      padding="4vh"
+      borderRadius="30px"
       shadow="xl"
       position="relative"
+      overflow="scroll"
     >
-      <Box position="absolute" top="15px" right="15px">
-        <Tooltip
-          label={isBookmarked ? "Remove bookmark" : "Bookmark café"}
-          hasArrow
-        >
-          <IconButton
-            aria-label="Bookmark café"
-            icon={isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
-            size="sm"
-            colorScheme={isBookmarked ? "orange" : "gray"}
-            variant="ghost"
-            onClick={() => onBookmark(cafe.id)}
-          />
-        </Tooltip>
+      {/* Bookmark Button & Edit and Delete Icons */}
+      <Box position="absolute" top="4vh" right="4vh">
+        <Flex>
+          <Tooltip
+            label={isBookmarked ? "Remove bookmark" : "Bookmark café"}
+            hasArrow
+          >
+            <IconButton
+              aria-label="Bookmark café"
+              icon={isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
+              size="lg"
+              colorScheme={isBookmarked ? "orange" : "gray"}
+              variant="ghost"
+              onClick={() => onBookmark(cafe.id)}
+            />
+          </Tooltip>
+          <Tooltip label="Edit café" hasArrow>
+            <IconButton
+              aria-label="Edit café"
+              icon={<EditIcon />}
+              size="lg"
+              variant="ghost"
+              color="black"
+              _hover={{ color: "#3970B5" }}
+              onClick={() => onEdit(index)}
+            />
+          </Tooltip>
+          <Tooltip label="Delete café" hasArrow>
+            <IconButton
+              aria-label="Delete café"
+              icon={<DeleteIcon />}
+              size="lg"
+              variant="ghost"
+              color="gray.600"
+              _hover={{ color: "#DC6739" }}
+              onClick={onDeleteModalOpen}
+            />
+          </Tooltip>
+        </Flex>
       </Box>
 
-      <Text fontSize="2xl" fontFamily="afacad" fontWeight="black">
-        {cafe.cafeName}
-      </Text>
-      <Text fontSize="lg" fontFamily="afacad">
-        {cafe.cafeLocation}
-      </Text>
+      {/* Header Section */}
+      <Flex
+        justifyItems="flex-start"
+        textAlign="left"
+        width="80%"
+        dir="row"
+        align="start"
+      >
+        {/* Left Side - Cafe Info */}
+        <Flex direction="column" align="start">
+          <Box mb={2}>
+            <Text fontSize="3xl" fontFamily="afacad" fontWeight="black">
+              {cafe.cafeName}
+            </Text>
+            <Text fontSize="lg" fontFamily="afacad" mb={2}>
+              {cafe.cafeLocation}
+            </Text>
+          </Box>
 
-      {cafe.averageRating > 0 && (
-        <Flex align="center" mb={2}>
-          {renderStars(Math.round(cafe.averageRating))}
-          <Text ml={2} fontSize="sm">
-            ({cafe.reviewCount} reviews)
-          </Text>
+          {/* Distance display */}
+          <Box mb={2}>
+            {currentLocation ? (
+              cafe?.lat && cafe?.lng ? (
+                <Text
+                  fontFamily="afacad"
+                  fontSize="md"
+                  color="gray.500"
+                  fontWeight="light"
+                >
+                  {calculateDistance(
+                    currentLocation.coordinates.lat,
+                    currentLocation.coordinates.lng,
+                    Number(cafe.lat),
+                    Number(cafe.lng)
+                  ).toFixed(1)}{" "}
+                  km away
+                </Text>
+              ) : (
+                <Text fontSize="md" color="red" fontWeight="light">
+                  Cafe location missing
+                </Text>
+              )
+            ) : (
+              <Text fontSize="md" color="gray.500" fontWeight="light">
+                Location not available
+              </Text>
+            )}
+          </Box>
         </Flex>
-      )}
 
-      {userLocation && cafe.lat && cafe.lng && (
-        <Text fontSize="sm" color="gray.500">
-          {calculateDistance(
-            userLocation.coordinates.lat,
-            userLocation.coordinates.lng,
-            parseFloat(cafe.lat.toString()),
-            parseFloat(cafe.lng.toString())
-          ).toFixed(1)}{" "}
-          km away
-        </Text>
-      )}
-      <Button
-        background="#DC6739"
-        margin="2"
-        borderRadius="3xl"
-        width="15vw"
-        bgColor="#FFCE58"
-        onClick={() => onEdit(index)}
-      >
-        Edit
-      </Button>
-      <Button
-        background="#DC6739"
-        borderRadius="3xl"
-        width="15vw"
-        bgColor="#FFCE58"
-        onClick={() => onDelete(cafe.id)}
-      >
-        Delete
-      </Button>
-
-      <Flex alignItems="center" justifyContent="flex-start" mt={2} gap={2}>
-        <Button
-          background="#DC6739"
-          borderRadius="3xl"
-          width="10vw"
-          bgColor="#FFCE58"
-          onClick={handleViewReviews}
+        {/* Action Buttons */}
+        <Flex
+          alignItems="center"
+          paddingTop={2}
+          marginLeft="2vw"
+          marginRight="8vw"
         >
-          Reviews
-        </Button>
+          <Button
+            onClick={onReviewFormOpen}
+            borderRadius="3xl"
+            size="md"
+            colorScheme="orange"
+            variant="outline"
+            leftIcon={<StarIcon />}
+            fontFamily="afacad"
+            fontWeight="light"
+          >
+            Leave Review
+          </Button>
+        </Flex>
 
-        <Button
-          onClick={onReviewFormOpen}
-          borderRadius="3xl"
-          size="sm"
-          colorScheme="orange"
-          variant="outline"
-          leftIcon={<StarIcon />}
-        >
-          Leave Review
-        </Button>
+        {/* Right Side - Rating and Price */}
+        <Box textAlign="left" alignItems="start">
+          <Flex align="center" mb={2}>
+            <Text
+              fontFamily="afacad"
+              fontSize="lg"
+              fontWeight="semibold"
+              mr={2}
+            >
+              Rating:
+            </Text>
+            {cafe.avg_rating ? (
+              <>
+                <Text
+                  fontFamily="afacad"
+                  fontSize="lg"
+                  fontWeight="normal"
+                  mr={2}
+                >
+                  {cafe.avg_rating}
+                </Text>
+                <StarIcon color="#FFCE58" boxSize={5} mr={2} />
+                <Text fontFamily="afacad" fontSize="lg" color="gray.600">
+                  ({cafe.review_count})
+                </Text>
+              </>
+            ) : (
+              <Text
+                fontFamily="afacad"
+                fontSize="lg"
+                fontWeight="normal"
+                color="gray.500"
+              >
+                No ratings yet
+              </Text>
+            )}
+          </Flex>
+
+          {/* Price Range */}
+          <Flex align="center" mb={2}>
+            <Text
+              fontFamily="afacad"
+              fontSize="lg"
+              fontWeight="semibold"
+              mr={2}
+            >
+              Price Range:
+            </Text>
+            {cafe.avg_price_per_pax ? (
+              <>
+                <Text fontFamily="afacad" fontSize="lg" fontWeight="semibold">
+                  ${cafe.avg_price_per_pax}
+                </Text>
+              </>
+            ) : (
+              <Text
+                fontFamily="afacad"
+                fontSize="lg"
+                fontWeight="normal"
+                color="gray.500"
+              >
+                No price range available
+              </Text>
+            )}
+          </Flex>
+        </Box>
       </Flex>
+
+      {/* Navigation Tabs */}
+      <Tabs
+        variant="line"
+        colorScheme="teal"
+        mb={4}
+        index={activeTab}
+        onChange={handleTabChange}
+      >
+        <TabList>
+          <Tab
+            _selected={{ color: "teal.500", borderColor: "teal.500" }}
+            fontWeight="semibold"
+          >
+            Overview
+          </Tab>
+          <Tab fontWeight="semibold">Menu</Tab>
+          <Tab fontWeight="semibold">Images</Tab>
+          <Tab fontWeight="semibold">Reviews</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel>
+            <Flex py={4} textAlign="left">
+              {/* Price Range */}
+              <Text
+                fontFamily="afacad"
+                fontSize="lg"
+                fontWeight="normal"
+                mr={2}
+              >
+                Opening Hours:
+              </Text>
+              {cafe.opening_hours ? (
+                <>
+                  <Text fontFamily="afacad" fontSize="lg" fontWeight="light">
+                    {cafe.opening_hours}
+                  </Text>
+                </>
+              ) : (
+                <Text
+                  fontFamily="afacad"
+                  fontSize="lg"
+                  fontWeight="normal"
+                  color="gray.500"
+                >
+                  Opening hours not stated
+                </Text>
+              )}
+            </Flex>
+          </TabPanel>
+
+          <TabPanel px={0}>
+            <Box p={7} textAlign="center" color="gray.500">
+              Menu currently unavailable
+            </Box>
+          </TabPanel>
+
+          <TabPanel px={0}>
+            <Flex overflow="hidden" dir="row" gap={1}>
+              <Image
+                src={cafePhoto}
+                alt="Cafe interior"
+                width="40vh"
+                height="40vh"
+                fit="cover"
+              />
+              <Image
+                src={cafePhoto2}
+                alt="Cafe interior"
+                width="40vh"
+                height="40vh"
+                fit="cover"
+              />
+            </Flex>
+          </TabPanel>
+
+          <TabPanel px={0}>
+            <Box>
+              <CafeReviews
+                key={reviewsKey} // Force re-render when reviews are updated
+                cafeId={cafe.id}
+                currentUserId={user ? user.id : null}
+              />
+            </Box>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
 
       {/* Review Form Modal */}
       <Modal isOpen={isReviewFormOpen} onClose={onReviewFormClose} size="md">
@@ -193,39 +420,32 @@ const CafeCard: React.FC<CafeCardProps> = ({
               cafe_id={cafe.id}
               isOpen={isReviewFormOpen}
               onClose={onReviewFormClose}
-              onSubmitSuccess={() => {
-                onReviewFormClose();
-                onReviewSubmit(cafe.id);
-              }}
+              onSubmitSuccess={handleReviewSubmitSuccess}
             />
           </ModalBody>
         </ModalContent>
       </Modal>
 
-      {/* Reviews List Modal */}
-      <Modal
-        isOpen={isReviewsOpen}
-        onClose={onReviewsClose}
-        size="xl"
-        scrollBehavior="inside"
-      >
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} size="sm">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Reviews for {cafe.cafeName}</ModalHeader>
+          <ModalHeader>Delete Café</ModalHeader>
           <ModalCloseButton />
-          <ModalBody pb={6}>
-            {cafeIdForReviews && (
-              <CafeReviews
-                cafeId={cafeIdForReviews}
-                currentUserId={user ? user.id : null}
-              />
-            )}
+          <ModalBody>
+            <Text>
+              Are you sure you want to delete "{cafe.cafeName}"? This action
+              cannot be undone.
+            </Text>
           </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" onClick={onReviewsClose}>
-              Close
+          <Flex justify="flex-end" gap={3} p={6}>
+            <Button variant="ghost" onClick={onDeleteModalClose}>
+              Cancel
             </Button>
-          </ModalFooter>
+            <Button colorScheme="red" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
+          </Flex>
         </ModalContent>
       </Modal>
     </Flex>

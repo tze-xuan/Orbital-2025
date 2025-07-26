@@ -26,7 +26,7 @@ const HomeSidebar = () => {
     {
       label: "Discover Cafés",
       icon: FiCoffee,
-      route: "/cafes",
+      route: "/discovercafes",
     },
     {
       label: "Our Community",

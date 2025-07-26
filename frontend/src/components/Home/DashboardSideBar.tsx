@@ -24,6 +24,7 @@ import {
   FiEdit3,
   FiSettings,
 } from "react-icons/fi";
+import { MdAccountCircle } from "react-icons/md";
 import UserCard from "./UserCard.tsx";
 
 const DashboardSideBar = () => {
@@ -64,7 +65,7 @@ const DashboardSideBar = () => {
     },
     {
       label: "My Account",
-      icon: FiEdit3,
+      icon: MdAccountCircle,
       route: "/account",
     },
   ];

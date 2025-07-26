@@ -1,47 +1,28 @@
 import { Flex, Text } from "@chakra-ui/react";
 import { CafeType } from "../../interfaces/CafeType.tsx";
 import { LocationResult } from "./LocationFilterModal.tsx";
-import CafeCard from "./CafeCard.tsx";
+import DashboardCafeCard from "./HomeCafeCard.tsx";
 
-interface CafeListProps {
+interface DashboardCafeListProps {
   cafes: CafeType[];
   user?: { id: string } | null;
-  currentUserId?: string;
-  showBookmarked?: boolean;
   searchTerm: string;
   userLocation: LocationResult | null;
   filterRadius: number;
-  isBookmarked?: (cafeId: number) => boolean;
-  onBookmark?: (cafeId: number) => void;
-  onEdit?: (index: number) => void;
-  onDelete?: (cafeId: number) => void;
-  onReviewSubmit?: (cafeId: number) => void;
 }
 
-const CafeList = ({
+const DashboardCafeList = ({
   cafes,
   user,
-  currentUserId,
-  showBookmarked,
   searchTerm,
   userLocation,
   filterRadius,
-  isBookmarked,
-  onBookmark,
-  onEdit,
-  onDelete,
-  onReviewSubmit,
-}: CafeListProps) => {
+}: DashboardCafeListProps) => {
   // Results Info
   const showResultsInfo = searchTerm || userLocation;
 
   // Empty state messages
   const getEmptyStateMessage = () => {
-    if (showBookmarked) {
-      return searchTerm || userLocation
-        ? "No bookmarked cafés match your filters."
-        : "No bookmarked cafés yet. Start exploring and bookmark your favorites!";
-    }
     return searchTerm || userLocation
       ? "No cafés match your filters."
       : "No cafés found.";
@@ -68,7 +49,7 @@ const CafeList = ({
       {/* Cafe Cards */}
       <Flex
         alignItems="center"
-        maxH="64vh"
+        maxH="75vh"
         overflowY="auto"
         scrollBehavior="smooth"
         direction="column"
@@ -77,18 +58,12 @@ const CafeList = ({
         paddingBottom="18px"
       >
         {cafes.map((cafe: CafeType, index: number) => (
-          <CafeCard
+          <DashboardCafeCard
             key={cafe.id}
             cafe={cafe}
             user={user}
-            currentUserId={currentUserId}
             index={index}
-            isBookmarked={isBookmarked ? isBookmarked(cafe.id) : false}
             userLocation={userLocation}
-            onBookmark={onBookmark}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onReviewSubmit={() => onReviewSubmit(cafe.id)}
           />
         ))}
       </Flex>
@@ -96,4 +71,4 @@ const CafeList = ({
   );
 };
 
-export default CafeList;
+export default DashboardCafeList;

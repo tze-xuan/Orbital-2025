@@ -21,9 +21,9 @@ const Home = () => {
           paddingY="5vh"
         >
           <HomeSideBar />
-          {/* <NavButton as="a" href="/discovercafes">
+          <NavButton as="a" href="/discovercafes">
             Discover Cafés
-          </NavButton> */}
+          </NavButton>
           <Button
             variant="plain"
             fontFamily="darumadrop"
@@ -45,13 +45,9 @@ const Home = () => {
           </NavButton>
         </Flex>
 
-        <Text fontFamily="afacad" fontSize="3xl" margin="2vh">
-          Discover Cafés Nearby!
-        </Text>
-
         <Flex
           position="relative" // Crucial for proper containment
-          height="80%"
+          height="90%"
           width="100%"
           justifyContent="center"
           alignItems="center"
