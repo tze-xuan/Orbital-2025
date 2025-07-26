@@ -1,7 +1,6 @@
 import {
   Badge,
   Button,
-  ButtonGroup,
   Flex,
   IconButton,
   Input,
@@ -12,10 +11,7 @@ import { SearchIcon } from "@chakra-ui/icons";
 import { FaLocationArrow, FaTimes } from "react-icons/fa";
 import { LocationResult } from "./LocationFilterModal.tsx";
 
-interface CafeFilterSectionProps {
-  showBookmarked?: boolean;
-  setShowBookmarked?: (show: boolean) => void;
-  bookmarksCount?: number;
+interface DashboardCafeFilterSectionProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   userLocation: LocationResult | null;
@@ -24,54 +20,24 @@ interface CafeFilterSectionProps {
   onClearLocationFilter: () => void;
 }
 
-const CafeFilterSection = ({
-  showBookmarked,
-  setShowBookmarked,
-  bookmarksCount,
+const DashboardCafeFilterSection = ({
   searchTerm,
   setSearchTerm,
   userLocation,
   filterRadius,
   onLocationModalOpen,
   onClearLocationFilter,
-}: CafeFilterSectionProps) => {
+}: DashboardCafeFilterSectionProps) => {
   return (
-    <>
-      <ButtonGroup variant="outline">
-        <Button
-          colorScheme={!showBookmarked ? "#DC6739" : "white"}
-          onClick={() => setShowBookmarked(false)}
-          bg={!showBookmarked ? "#DC6739" : "white"}
-          color={!showBookmarked ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          borderRadius="100px"
-          fontFamily="afacad"
-        >
-          All Cafés
-        </Button>
-        <Button
-          colorScheme={showBookmarked ? "#DC6739" : "white"}
-          onClick={() => setShowBookmarked(true)}
-          bg={showBookmarked ? "#DC6739" : "white"}
-          color={showBookmarked ? "white" : "#DC6739"}
-          borderColor="#DC6739"
-          borderRadius="100px"
-          fontFamily="afacad"
-        >
-          Bookmarked Cafés ({bookmarksCount})
-        </Button>
-      </ButtonGroup>
-
-      <Flex dir="horizontal" gap={4}>
+    <Flex dir="column" gap={10}>
+      <Flex dir="row" gap={4}>
         {/* Search Bar */}
         <InputGroup maxWidth="500px">
           <InputLeftElement pointerEvents="none">
             <SearchIcon color="#DC6739" />
           </InputLeftElement>
           <Input
-            placeholder={`Search ${
-              showBookmarked ? "bookmarked " : ""
-            }cafés by name...`}
+            placeholder={"Search cafés by name..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             borderRadius="100px"
@@ -124,8 +90,8 @@ const CafeFilterSection = ({
           )}
         </Flex>
       </Flex>
-    </>
+    </Flex>
   );
 };
 
-export default CafeFilterSection;
+export default DashboardCafeFilterSection;

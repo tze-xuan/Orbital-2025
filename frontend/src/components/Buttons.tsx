@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 
 interface NavButtonProps extends ButtonProps {
   children: ReactNode;
+  href?: string;
 }
 
 export const NavButton = ({ children, ...props }: NavButtonProps) => {

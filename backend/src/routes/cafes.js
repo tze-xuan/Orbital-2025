@@ -10,8 +10,10 @@ const mapsClient = new Client({});
 
 // Save cafe and get coordinates
 router.post("/", async (req, res) => {
+  let connection;
   try {
     const { cafeName, cafeLocation } = req.body;
+    connection = await pool.getConnection();
 
     // First geocode the location
     const geocodeResponse = await mapsClient.geocode({
@@ -32,7 +34,7 @@ router.post("/", async (req, res) => {
     }
 
     // Save to database
-    await pool.execute(
+    await connection.execute(
       "INSERT INTO cafes (cafeName, cafeLocation, lat, lng) VALUES (?, ?, ?, ?)",
       [cafeName, cafeLocation, lat, lng]
     );
@@ -45,37 +47,53 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    res.json(error);
+    res.status(500).json(error);
+  } finally {
+    if (connection) connection.release();
   }
 });
 
-// API endpoints
 // Get all
 router.get("/", async (req, res) => {
+  let connection;
   try {
-    const [rows] = await pool.query("SELECT * FROM cafes");
+    // Set no-cache headers
+    res.set({
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
 
-    // Transform data to ensure correct format
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute("SELECT * FROM cafes");
+
     const formattedCafes = rows.map((cafe) => ({
       ...cafe,
       lat: Number(cafe.lat),
       lng: Number(cafe.lng),
     }));
 
+    console.log("Returning cafes from DB:", formattedCafes); // Debug log
     res.json(formattedCafes);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Get by ID
 router.get("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
-    const [rows] = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
+    connection = await pool.getConnection();
+    const [rows] = await connection.execute(
+      "SELECT * FROM cafes WHERE id = ?",
+      [id]
+    );
 
-    // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
       ...cafe,
       lat: Number(cafe.lat),
@@ -86,14 +104,18 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Update
 router.put("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
     const { cafeName, cafeLocation } = req.body;
+    connection = await pool.getConnection();
 
     // First geocode the location
     const geocodeResponse = await mapsClient.geocode({
@@ -113,15 +135,16 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ error: "Coordinates has issue" });
     }
 
-    await pool.query(
+    await connection.execute(
       "UPDATE cafes SET cafeName = ?, cafeLocation = ?, lat = ?, lng = ? WHERE id = ?",
       [cafeName, cafeLocation, lat, lng, id]
     );
 
     // Fetch the updated record to return
-    const [updatedCafe] = await pool.query("SELECT * FROM cafes WHERE id = ?", [
-      id,
-    ]);
+    const [updatedCafe] = await connection.execute(
+      "SELECT * FROM cafes WHERE id = ?",
+      [id]
+    );
     res.json({
       ...updatedCafe[0],
       lat: Number(updatedCafe[0].lat),
@@ -130,18 +153,24 @@ router.put("/:id", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to update café" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Delete
 router.delete("/:id", async (req, res) => {
+  let connection;
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM cafes WHERE id = ?", [id]);
-    res.json({ success: true, message: "Café deleted" }); // Simplified response
+    connection = await pool.getConnection();
+    await connection.execute("DELETE FROM cafes WHERE id = ?", [id]);
+    res.json({ success: true, message: "Café deleted" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to delete café" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -149,7 +178,7 @@ router.delete("/:id", async (req, res) => {
 // router.post("/", async (req, res) => {
 //   try {
 //     const { cafeName, cafeLocation } = req.body;
-//     await pool.query(
+//     await pool.execute(
 //       "INSERT INTO cafes (cafeName, cafeLocation) VALUES (?, ?)",
 //       [cafeName, cafeLocation]
 //     );
@@ -163,7 +192,7 @@ router.delete("/:id", async (req, res) => {
 // //GET ALL
 // router.get("/", async (req, res) => {
 //   try {
-//     const cafes = await pool.query("SELECT * FROM cafes");
+//     const cafes = await pool.execute("SELECT * FROM cafes");
 //     res.json(cafes[0]);
 //   } catch (err) {
 //     console.error(err.message);
@@ -175,7 +204,7 @@ router.delete("/:id", async (req, res) => {
 // router.get("/:id", async (req, res) => {
 //   try {
 //     const { id } = req.params;
-//     const cafes = await pool.query("SELECT * FROM cafes WHERE id = ?", [id]);
+//     const cafes = await pool.execute("SELECT * FROM cafes WHERE id = ?", [id]);
 //     res.json(cafes);
 //   } catch (err) {
 //     console.error(err.message);
@@ -189,7 +218,7 @@ router.delete("/:id", async (req, res) => {
 //     const { id } = req.params;
 //     const { cafeName, cafeLocation } = req.body;
 
-//     await pool.query(
+//     await pool.execute(
 //       "UPDATE cafes SET cafeName = ?, cafeLocation = ? WHERE id = ?",
 //       [cafeName, cafeLocation, id]
 //     );
@@ -205,7 +234,7 @@ router.delete("/:id", async (req, res) => {
 //   try {
 //     const { id } = req.params;
 
-//     await pool.query("DELETE FROM cafes WHERE id = ?", [id]);
+//     await pool.execute("DELETE FROM cafes WHERE id = ?", [id]);
 //     res.json("Café deleted");
 //   } catch (err) {
 //     console.error(err.message);

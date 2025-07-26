@@ -31,188 +31,141 @@ router.post("/login", (req, res, next) => {
 // (3) SIGNUP ROUTE ------
 router.post("/signup", async (req, res) => {
   const { username, password } = req.body;
-
-  // Trim username
   const normalisedUsername = username.trim().toLowerCase();
-  // Hash the password
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  let connection;
   try {
-    // Insert new user
-    const [result] = await pool.query(
+    connection = await pool.getConnection();
+    const [result] = await connection.execute(
       "INSERT INTO users (username, password) VALUES (?, ?)",
       [normalisedUsername, hashedPassword]
     );
 
-    // Retrieve newly created user ID
     const newUserId = result.insertId;
-
-    // 4. Success
     res.json({
       message: "Signup successful",
       userId: newUserId,
     });
   } catch (err) {
     console.error(err);
-    res.json({ message: "Server error during signup" });
+    res.status(500).json({ message: "Server error during signup" });
+  } finally {
+    if (connection) connection.release();
   }
 });
-
-// routes only accessible when not logged in (login/signup)
-function checkNotAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return res.redirect("/"); // redirect logged in users away
-  }
-  next(); // User is not authenticated - proceed to login/signup page
-}
 
 // (4) CHECK-USERNAME ROUTE ------
 router.get("/check-username", async (req, res) => {
   const { username } = req.query;
 
-  // Validate input
   if (typeof username !== "string") {
     return res.status(400).json({ error: "Invalid username format" });
   }
 
-  // Normalize username
   const normalisedUsername = username.trim().toLowerCase();
+  let connection;
 
   try {
-    const [users] = await pool.query("SELECT * FROM users WHERE username = ?", [
-      normalisedUsername,
-    ]);
+    connection = await pool.getConnection();
+    const [users] = await connection.execute(
+      "SELECT * FROM users WHERE username = ?",
+      [normalisedUsername]
+    );
 
     res.json({ available: users.length === 0 });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  } finally {
+    if (connection) connection.release();
   }
 });
-
-// (5) LOGOUT ROUTE ------
-router.post("/logout", (req, res) => {
-  const handleLogout = () => {
-    req.logout((err) => {
-      // Proceed to session destruction even if logout fails
-      destroySession(req, res);
-    });
-  };
-
-  // Handle session destruction
-  const destroySession = (req, res) => {
-    req.session.destroy((err) => {
-      clearSessionCookie(res);
-
-      if (err) {
-        console.error("Session destruction error:", err);
-        return res.status(500).json({ error: "Logout failed" });
-      }
-
-      res.status(200).json({ message: "Logged out successfully" });
-    });
-  };
-
-  // Clear client-side cookie
-  const clearSessionCookie = (res) => {
-    res.clearCookie("connect.sid", {
-      domain:
-        process.env.NODE_ENV === "production"
-          ? "cafechronicles.vercel.app"
-          : "localhost",
-      path: "/",
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      expires: new Date(0),
-    });
-  };
-
-  // Check authentication state before attempting logout
-  if (req.isAuthenticated()) {
-    handleLogout();
-  } else {
-    // If not authenticated, still clear residual session data
-    destroySession(req, res);
-  }
-});
-
-// // routes that require authentication (profile/homepage)
-// function checkAuthenticated(req, res, next) {
-//   if (req.isAuthenticated()) {
-//     // isAuthenticated == whether user logged in
-//     return next(); // user authenticated, proceeds to protected route
-//   }
-//   // User is not authenticated - redirect to login with a flash message
-//   req.flash("error", "Please log in to access this page");
-//   req.session.returnTo = req.originalUrl;
-//   return res.redirect("/login");
-// }
 
 // (6) USER ROUTE ------
 // GET ALL USERS
 router.get("/users", async (req, res) => {
+  let connection;
   try {
-    const result = await pool.query("SELECT * FROM users");
-    res.json(result[0]);
+    connection = await pool.getConnection();
+    const [result] = await connection.execute("SELECT * FROM users");
+    res.json(result);
   } catch (err) {
     console.error(err);
-    res.send(err);
+    res.status(500).send(err);
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 //GET USER BY USERNAME
 router.get("/users/:username", async (req, res) => {
+  let connection;
   try {
     const { username } = req.params;
-    const users = await pool.query("SELECT * FROM users WHERE username = ?", [
-      username,
-    ]);
+    connection = await pool.getConnection();
+    const [users] = await connection.execute(
+      "SELECT * FROM users WHERE username = ?",
+      [username]
+    );
     if (!users.length) {
-      res.json("USER NOT FOUND");
+      res.status(404).json("USER NOT FOUND");
     } else {
       res.json(users[0]);
-    } //get idx 0 to not display buffering stuff}
+    }
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 //UPDATE USER DETAILS
 router.put("/users/:username", async (req, res) => {
+  let connection;
   try {
     const { username } = req.params;
     const { password } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const updateUsers = await pool.query(
+    connection = await pool.getConnection();
+    const [updateUsers] = await connection.execute(
       "UPDATE users SET password = ? WHERE username = ?",
       [hashedPassword, username]
     );
     if (!updateUsers.affectedRows) {
-      res.json("USER NOT FOUND");
+      res.status(404).json("USER NOT FOUND");
+    } else {
+      res.json("User was updated");
     }
-    res.json("User was updated");
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 //DELETE USER ACCOUNT
 router.delete("/users/:username", async (req, res) => {
+  let connection;
   try {
     const { username } = req.params;
-    const [deleteUsers] = await pool.query(
+    connection = await pool.getConnection();
+    const [deleteUsers] = await connection.execute(
       "DELETE FROM users WHERE username = ?",
       [username]
     );
 
     if (!deleteUsers.affectedRows) {
-      return res.json("USER NOT FOUND");
+      return res.status(404).json("USER NOT FOUND");
     }
     res.json("User was deleted");
   } catch (err) {
     console.error(err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

@@ -52,7 +52,7 @@ app.post("/", async (req, res) => {
 // API endpoint to get locations
 app.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM cafes");
+    const [rows] = await pool.execute("SELECT * FROM cafes");
 
     // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({

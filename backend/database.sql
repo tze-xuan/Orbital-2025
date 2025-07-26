@@ -1,4 +1,6 @@
-USE freedb_CafeChronicles;
+-- USE freedb_CafeChronicles;
+
+USE freedb_CafeChronicle;
 
 CREATE TABLE cafes (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -31,7 +33,7 @@ CREATE TABLE reviews (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (cafe_id) REFERENCES cafes(id)
-)
+);
 
 CREATE TABLE stamps (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -42,7 +44,7 @@ CREATE TABLE stamps (
     longitude DECIMAL(11, 8) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE
-)
+);
 
 CREATE TABLE bookmarks (
     bookmark_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -57,3 +59,24 @@ CREATE TABLE bookmarks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,    
     FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE
 );
+
+ALTER TABLE cafes
+ADD COLUMN avg_rating DECIMAL(3,2) DEFAULT NULL,
+ADD COLUMN avg_price_per_pax DECIMAL(10,2) DEFAULT NULL,
+ADD COLUMN review_count INT DEFAULT 0;
+
+UPDATE cafes c
+LEFT JOIN (
+    SELECT 
+        cafe_id,
+        AVG(rating) AS avg_rating,
+        AVG(avgPricePerPax) AS avg_price,
+        COUNT(*) AS review_count
+    FROM reviews
+    GROUP BY cafe_id
+) r ON c.id = r.cafe_id
+SET
+    c.avg_rating = ROUND(COALESCE(r.avg_rating, 0), 2),
+    c.avg_price_per_pax = ROUND(COALESCE(r.avg_price, 0), 2),
+    c.review_count = COALESCE(r.review_count, 0)
+;

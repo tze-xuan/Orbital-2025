@@ -6,9 +6,10 @@ const LocalStrategy = passportLocal.Strategy;
 async function getUserByUsername(username) {
   const normalizedUsername = username.trim().toLowerCase();
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE username = ?", [
-      normalizedUsername,
-    ]);
+    const [rows] = await pool.execute(
+      "SELECT * FROM users WHERE username = ?",
+      [normalizedUsername]
+    );
     return rows[0] || null;
   } catch (error) {
     throw error;
@@ -17,7 +18,7 @@ async function getUserByUsername(username) {
 
 async function getUserById(id) {
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
+    const [rows] = await pool.execute("SELECT * FROM users WHERE id = ?", [id]);
     return rows[0] || null;
   } catch (error) {
     console.error("Database error:", error);

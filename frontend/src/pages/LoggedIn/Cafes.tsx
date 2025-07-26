@@ -1,5 +1,3 @@
-// Enhanced debugging version of your Cafes component
-
 import {
   Button,
   Flex,
@@ -12,15 +10,15 @@ import Axios from "axios";
 import LocationFilterModal, {
   LocationResult,
   calculateDistance,
-} from "../components/Cafes/LocationFilterModal.tsx";
-import { CafeType } from "../interfaces/CafeType.tsx";
-import { Bookmark } from "../interfaces/BookmarkInterface.tsx";
-import CafeFilterSection from "../components/Cafes/CafeFilterSection.tsx";
-import CafeList from "../components/Cafes/CafeList.tsx";
-import CafeEditModal from "../components/Cafes/CafeEditModal.tsx";
-import CafeAddModal from "../components/Cafes/CafeAddModal.tsx";
+} from "../../components/Cafes/LocationFilterModal.tsx";
+import { CafeType } from "../../interfaces/CafeType.tsx";
+import { Bookmark } from "../../interfaces/BookmarkInterface.tsx";
+import CafeFilterSection from "../../components/Cafes/CafeFilterSection.tsx";
+import CafeList from "../../components/Cafes/CafeList.tsx";
+import CafeEditModal from "../../components/Cafes/CafeEditModal.tsx";
+import CafeAddModal from "../../components/Cafes/CafeAddModal.tsx";
 import { FaHome } from "react-icons/fa";
-import CafeReviews from "../components/Cafes/ReviewList.tsx";
+import CafeReviews from "../../components/Cafes/ReviewList.tsx";
 
 const Cafes = () => {
   const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
@@ -30,7 +28,7 @@ const Cafes = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showBookmarked, setShowBookmarked] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [, setIsLoading] = useState(true); // Add loading state
   const [, setError] = useState<string | null>(null); // Add error state
   const toast = useToast();
 
@@ -126,13 +124,23 @@ const Cafes = () => {
 
       const response = await Axios.get(CAFE_API_ROUTE, {
         timeout: 10000,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+        // Add timestamp to prevent caching
+        params: {
+          _t: Date.now(),
+        },
       });
 
       if (!Array.isArray(response.data)) {
         throw new Error("Invalid data format received");
       }
 
+      console.log("Fresh data from API:", response.data); // Debug log
       setData(response.data);
       debug("Cafes fetched successfully", response.data.length);
     } catch (error) {
@@ -186,16 +194,6 @@ const Cafes = () => {
     }
   }, [userId, BOOKMARK_API_ROUTE, toast]);
 
-  // Load cafes regardless of auth status
-  useEffect(() => {
-    getData();
-  }, [getData]);
-
-  // Only bookmarks require auth
-  useEffect(() => {
-    if (userId) getBookmarks();
-  }, [userId, getBookmarks]);
-
   // Bookmark handling
   const handleBookmark = async (cafeId: number) => {
     if (!userId) {
@@ -235,10 +233,6 @@ const Cafes = () => {
       });
     }
   };
-
-  // const isBookmarked = (cafeId: number) => {
-  //   return bookmarks.some((bookmark: Bookmark) => bookmark.cafe_id === cafeId);
-  // };
 
   const getBookmarkedCafes = (): CafeType[] => {
     if (!data || !bookmarks.length) return [];
@@ -309,33 +303,6 @@ const Cafes = () => {
     console.log("Final filtered cafes:", filtered);
     return filtered;
   })();
-
-  useEffect(() => {
-    getUserId();
-  }, [getUserId]);
-
-  // Use effects with better dependency management
-  useEffect(() => {
-    console.log("User ID changed:", userId);
-    if (userId !== null) {
-      // Fetch both data and bookmarks when user ID is available
-      getData();
-      getBookmarks();
-    } else {
-      // Clear data when no user
-      setData([]);
-      setBookmarks([]);
-    }
-  }, [userId, getBookmarks, getData]); // Only depend on userId
-
-  // Simplified useEffect to avoid circular dependencies
-  useEffect(() => {
-    // This effect runs when getBookmarks changes, but we want to avoid circular calls
-    if (userId && data === null && !isLoading) {
-      console.log("Data is null but user exists, fetching data");
-      getData();
-    }
-  }, [getBookmarks, userId, data, isLoading, getData]);
 
   // Your other handler functions remain the same...
   const handleEdit = async () => {
@@ -463,10 +430,38 @@ const Cafes = () => {
     setLocationError("");
   };
 
-  // const refetchCafes = useCallback(() => {
-  //   getData();
-  //   getBookmarks();
-  // }, [getData, getBookmarks]);
+  // 1. Initialize user ID on component mount
+  useEffect(() => {
+    console.log("Component mounted, getting user ID");
+    getUserId();
+  }, [getUserId]); // Empty dependency - only run once on mount
+
+  // 2. Load cafes data when component mounts (regardless of auth)
+  useEffect(() => {
+    console.log("Loading initial cafe data");
+    getData();
+  }, [getData]); // Empty dependency - only run once on mount
+
+  // 3. Load bookmarks when user ID changes
+  useEffect(() => {
+    if (userId) {
+      console.log("User ID available, loading bookmarks for user:", userId);
+      getBookmarks();
+    } else {
+      console.log("No user ID, clearing bookmarks");
+      setBookmarks([]);
+    }
+  }, [userId, getBookmarks]); // Only depend on userId
+
+  // 4. Add this debug effect to track state changes
+  useEffect(() => {
+    console.log("=== STATE DEBUG ===");
+    console.log("Data state:", data);
+    console.log("Bookmarks state:", bookmarks);
+    console.log("User ID:", userId);
+    console.log("Filtered cafes:", filteredCafes);
+    console.log("==================");
+  }, [data, bookmarks, userId, filteredCafes]);
 
   return (
     <Flex alignItems="center" direction="column" gap={4} padding="6vh">
@@ -481,7 +476,6 @@ const Cafes = () => {
         _hover={{ color: "#DC6739" }}
         m={2}
       />
-
       <CafeFilterSection
         showBookmarked={showBookmarked}
         setShowBookmarked={setShowBookmarked}
@@ -493,7 +487,6 @@ const Cafes = () => {
         onLocationModalOpen={onLocationModalOpen}
         onClearLocationFilter={() => setUserLocation(null)}
       />
-
       <CafeList
         cafes={filteredCafes}
         user={currentUser}
@@ -508,11 +501,9 @@ const Cafes = () => {
         onDelete={handleDelete}
         onReviewSubmit={setReviewingCafeId}
       />
-
       {reviewingCafeId && (
         <CafeReviews cafeId={reviewingCafeId} currentUserId={userId} />
       )}
-
       {!showBookmarked && (
         <Button
           background="#3970B5"
@@ -524,7 +515,6 @@ const Cafes = () => {
           Add New
         </Button>
       )}
-
       {/* Your modals remain the same... */}
       <CafeEditModal
         isOpen={isOpen}
@@ -539,7 +529,6 @@ const Cafes = () => {
         onSave={handleEdit}
         handleLocationChange={handleLocationChange}
       />
-
       <CafeAddModal
         isOpen={isAddModalOpen}
         onClose={handleCloseAddModal}
@@ -552,7 +541,6 @@ const Cafes = () => {
         onAdd={handleAdd}
         handleLocationChange={handleLocationChange}
       />
-
       <LocationFilterModal
         isOpen={isLocationModalOpen}
         onClose={onLocationModalClose}

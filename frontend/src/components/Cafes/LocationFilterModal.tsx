@@ -52,7 +52,7 @@ interface LocationFilterModalProps {
 }
 
 // Geocoding service
-class GeocodingService {
+export class GeocodingService {
   private static instance: GeocodingService;
   private apiKey: string;
 
