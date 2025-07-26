@@ -1,4 +1,6 @@
-USE freedb_CafeChronicles;
+-- USE freedb_CafeChronicles;
+
+USE freedb_CafeChronicle;
 
 CREATE TABLE cafes (
     id INT PRIMARY KEY AUTO_INCREMENT,
