@@ -57,6 +57,13 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   let connection;
   try {
+    // Set no-cache headers
+    res.set({
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
+
     connection = await pool.getConnection();
     const [rows] = await connection.execute("SELECT * FROM cafes");
 
@@ -66,6 +73,7 @@ router.get("/", async (req, res) => {
       lng: Number(cafe.lng),
     }));
 
+    console.log("Returning cafes from DB:", formattedCafes); // Debug log
     res.json(formattedCafes);
   } catch (error) {
     console.error(error);
