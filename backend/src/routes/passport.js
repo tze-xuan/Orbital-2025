@@ -210,10 +210,6 @@ router.post("/cafes/nearby", async (req, res) => {
 
     let nearbyCafes;
 
-    const [cafes] = await pool.query('SELECT * FROM cafes');
-    
-    let nearbyCafes;
-
     // Calculate distance for each cafe
     if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
       // Use Google Maps for more accurate distances
