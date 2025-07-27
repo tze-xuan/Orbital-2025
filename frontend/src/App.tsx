@@ -7,6 +7,7 @@ import Cafes from "./pages/LoggedIn/Cafes.tsx";
 import DiscoverCafes from "./pages/NotLoggedIn/DiscoverCafes.tsx";
 import Logout from "./pages/NotLoggedIn/Logout.tsx";
 import Maps from "./pages/Maps.tsx";
+import CafePassport from "./pages/LoggedIn/Passport.tsx";
 import PageNotFound from "./pages/PageNotFound.tsx";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
@@ -26,8 +27,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/cafes" element={<Cafes />} />
           <Route path="/maps" element={<Maps />} />
+          <Route path="/passport" element={<CafePassport />} />
           <Route path="/community" element={<PageNotFound />} />
-          <Route path="/passport" element={<PageNotFound />} />
           <Route path="/routes" element={<PageNotFound />} />
           <Route path="/achievement" element={<PageNotFound />} />
           <Route path="/journal" element={<PageNotFound />} />

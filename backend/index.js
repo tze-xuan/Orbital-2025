@@ -85,6 +85,7 @@ app.use("/api/auth", require("./src/routes/auth"));
 app.use("/api/locations", require("./src/routes/map"));
 app.use("/api/bookmarks", require("./src/routes/bookmarks"));
 app.use("/api/reviews", require("./src/routes/reviews"));
+app.use("/api/passport", require("./src/routes/passport"));
 
 // Error handling middleware
 app.use((error, req, res, next) => {
