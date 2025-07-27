@@ -202,8 +202,6 @@ router.get("/cafes", async (req, res) => {
 router.post("/cafes/nearby", async (req, res) => {
   try {
     const { lat, lng, radius = 500, useGoogleMaps = false } = req.body;
-
-    const { lat, lng, radius = 500, useGoogleMaps = false } = req.body;
     
     // Get all cafes
     const [cafes] = await pool.query("SELECT * FROM cafes");
@@ -256,8 +254,6 @@ router.post("/cafes/nearby", async (req, res) => {
 router.post("/stamps/claim", async (req, res) => {
   try {
     const { userId, cafeId, lat, lng, useGoogleMaps = false } = req.body;
-
-    const { userId, cafeId, lat, lng, useGoogleMaps = false } = req.body;
     
     // Get cafe location
     const [cafes] = await pool.query(
@@ -273,9 +269,6 @@ router.post("/stamps/claim", async (req, res) => {
     const cafe = cafes[0];
     let distance;
     let verificationMethod = "haversine";
-
-    let distance;
-    let verificationMethod = 'haversine'
     
     // Verify user location
     if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
@@ -305,33 +298,8 @@ router.post("/stamps/claim", async (req, res) => {
         threshold: threshold,
         verificationMethod: verificationMethod,
       });
-    if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
-      const googleDistance = await calculateDistanceWithGoogleMaps(
-        `${lat},${lng}`,
-        `${cafe.lat},${cafe.lng}`
-      );
-      
-      if (googleDistance) {
-        distance = googleDistance.distance;
-        verificationMethod = 'google_maps';
-      } else {
-        // Fallback to Haversine
-        distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
-      }
-    } else {
-      distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
     }
     
-    const threshold = 100; // 100 meter threshold
-    if (distance > threshold) {
-      return res.status(400).json({ 
-        message: `Too far from cafe location. Distance: ${Math.round(distance)}m (max: ${threshold}m)`,
-        distance: Math.round(distance),
-        threshold: threshold,
-        verificationMethod: verificationMethod
-      });
-    }
-
     // Check if user already has stamp today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -364,19 +332,11 @@ router.post("/stamps/claim", async (req, res) => {
       distance: Math.round(distance),
       cafeName: cafe.name,
       verificationMethod: verificationMethod,
-    
-    res.json({ 
-      success: true, 
-      stampCount: stamps[0].count,
-      distance: Math.round(distance),
-      cafeName: cafe.name,
-      verificationMethod: verificationMethod
-    });
+    })
+
   } catch (error) {
     console.error("Error claiming stamp:", error);
     res.status(500).json({ message: "Error claiming stamp" });
-    console.error('Error claiming stamp:', error);
-    res.status(500).json({ message: 'Error claiming stamp', error: error.message });
   }
 });
 
