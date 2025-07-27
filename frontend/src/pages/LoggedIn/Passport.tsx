@@ -42,6 +42,7 @@ const getCurrentUser = () => {
 };
 
 const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
+const PASSPORT_API_ROUTE = "https://cafechronicles.vercel.app/api/passport/";
 
 const CafePassport: React.FC = () => {
   const [userLocation, setUserLocation] = useState(null);
@@ -100,7 +101,9 @@ const CafePassport: React.FC = () => {
   // Fetch user stamps
   const fetchUserStamps = useCallback(async () => {
     try {
-      const response = await axios.get(`/users/${currentUserId}/stamps`);
+      const response = await axios.get(
+        `${PASSPORT_API_ROUTE}users/${currentUserId}/stamps`
+      ); //url likely wrong
       setUserStamps(response.data);
     } catch (err) {
       console.error("Error fetching stamps:", err);
@@ -108,7 +111,7 @@ const CafePassport: React.FC = () => {
   }, [currentUserId]);
 
   // Claim stamp at cafe
-  const claimStamp = async (cafeId, cafeName) => {
+  const claimStamp = async (cafeId: any, cafeName: any) => {
     if (!userLocation) {
       setError("Location not available");
       return;
@@ -116,7 +119,7 @@ const CafePassport: React.FC = () => {
 
     setClaimingStamp(true);
     try {
-      const response = await axios.post(`/stamps/claim`, {
+      const response = await axios.post(`${PASSPORT_API_ROUTE}stamps/claim`, {
         userId: currentUserId,
         cafeId: cafeId,
         lat: userLocation.lat,
@@ -138,6 +141,8 @@ const CafePassport: React.FC = () => {
         err.response?.data?.message ||
         "Failed to claim stamp. Claim only at the cafe location. ";
       setError(errorMessage);
+      console.log(err.response.data);
+
       toast({
         title: "Claim Failed",
         description: errorMessage,
@@ -198,7 +203,7 @@ const CafePassport: React.FC = () => {
               <Button
                 colorScheme="blue"
                 size="sm"
-                onClick={() => claimStamp(cafe, cafe.name)}
+                onClick={() => claimStamp(cafe.id, cafe.cafeName)}
                 isLoading={claimingStamp}
                 isDisabled={!userLocation}
                 leftIcon={<Icon as={Star} />}

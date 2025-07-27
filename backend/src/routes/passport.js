@@ -58,7 +58,7 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
   try {
     const origins = `${userLat},${userLng}`;
     const destinations = cafes
-      .map((cafe) => `${cafe.latitude},${cafe.longitude}`)
+      .map((cafe) => `${cafe.lat},${cafe.lng}`)
       .join("|");
 
     const response = await axios.get(
@@ -84,8 +84,8 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
         fallbackDistance: calculateDistance(
           userLat,
           userLng,
-          cafes[index].latitude,
-          cafes[index].longitude
+          cafes[index].lat,
+          cafes[index].lng
         ),
       }));
     }
@@ -93,36 +93,16 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
     // Fallback to Haversine if Google Maps fails
     return cafes.map((cafe) => ({
       ...cafe,
-      distance: calculateDistance(
-        userLat,
-        userLng,
-        cafe.latitude,
-        cafe.longitude
-      ),
-      fallbackDistance: calculateDistance(
-        userLat,
-        userLng,
-        cafe.latitude,
-        cafe.longitude
-      ),
+      distance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
+      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
     }));
   } catch (error) {
     console.error("Batch distance calculation error:", error);
     // Fallback to Haversine formula
     return cafes.map((cafe) => ({
       ...cafe,
-      distance: calculateDistance(
-        userLat,
-        userLng,
-        cafe.latitude,
-        cafe.longitude
-      ),
-      fallbackDistance: calculateDistance(
-        userLat,
-        userLng,
-        cafe.latitude,
-        cafe.longitude
-      ),
+      distance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
+      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
     }));
   }
 }
@@ -159,12 +139,7 @@ router.post("/cafes/nearby", async (req, res) => {
       // Use Haversine formula (faster, no API calls)
       nearbyCafes = cafes
         .map((cafe) => {
-          const distance = calculateDistance(
-            lat,
-            lng,
-            cafe.latitude,
-            cafe.longitude
-          );
+          const distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
           return { ...cafe, distance, fallbackDistance: distance };
         })
         .filter((cafe) => cafe.distance < radius) // Within 500 meters
@@ -184,7 +159,7 @@ router.post("/stamps/claim", async (req, res) => {
 
     // Get cafe location
     const [cafes] = await pool.query(
-      "SELECT latitude, longitude FROM cafes WHERE id = ?",
+      "SELECT lat, lng FROM cafes WHERE id = ?",
       [cafeId]
     );
 
@@ -200,7 +175,7 @@ router.post("/stamps/claim", async (req, res) => {
     if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
       const googleDistance = await calculateDistanceWithGoogleMaps(
         `${lat},${lng}`,
-        `${cafe.latitude},${cafe.longitude}`
+        `${cafe.lat},${cafe.lng}`
       );
 
       if (googleDistance) {
@@ -208,10 +183,10 @@ router.post("/stamps/claim", async (req, res) => {
         verificationMethod = "google_maps";
       } else {
         // Fallback to Haversine
-        distance = calculateDistance(lat, lng, cafe.latitude, cafe.longitude);
+        distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
       }
     } else {
-      distance = calculateDistance(lat, lng, cafe.latitude, cafe.longitude);
+      distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
     }
 
     const threshold = 100; // 100 meter threshold
@@ -285,3 +260,5 @@ router.get("/users/:userId/stamps", async (req, res) => {
     res.status(500).json({ message: "Error fetching stamps" });
   }
 });
+
+module.exports = router;
