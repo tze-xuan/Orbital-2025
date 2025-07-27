@@ -39,7 +39,7 @@ async function calculateDistanceWithGoogleMaps(origins, destinations) {
           destinations: destinations,
           units: "metric",
           mode: "walking", // or 'driving', 'transit', 'bicycling'
-          key: process.env.GOOGLE_MAPS_API_KEY,
+          key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
         },
       }
     );
@@ -78,7 +78,7 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
           destinations: destinations,
           units: "metric",
           mode: "walking",
-          key: process.env.GOOGLE_MAPS_API_KEY,
+          key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
         },
       }
     );
@@ -124,7 +124,7 @@ async function calculateDistanceWithGoogleMaps(origins, destinations) {
         destinations: destinations,
         units: 'metric',
         mode: 'walking', // or 'driving', 'transit', 'bicycling'
-        key: process.env.GOOGLE_MAPS_API_KEY
+        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
       }
     });
 
@@ -155,7 +155,7 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
         destinations: destinations,
         units: 'metric',
         mode: 'walking',
-        key: process.env.GOOGLE_MAPS_API_KEY
+        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
       }
     });
 
@@ -209,7 +209,7 @@ router.post("/cafes/nearby", async (req, res) => {
     let nearbyCafes;
 
     // Calculate distance for each cafe
-    if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
+    if (useGoogleMaps && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       // Use Google Maps for more accurate distances
       const cafesWithDistance = await batchCalculateDistances(lat, lng, cafes);
       nearbyCafes = cafesWithDistance
@@ -225,7 +225,7 @@ router.post("/cafes/nearby", async (req, res) => {
         .filter((cafe) => cafe.distance < radius) // Within 500 meters
         .sort((a, b) => a.distance - b.distance);
     }
-    if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
+    if (useGoogleMaps && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       // Use Google Maps for more accurate distances
       const cafesWithDistance = await batchCalculateDistances(lat, lng, cafes);
       nearbyCafes = cafesWithDistance
@@ -258,7 +258,6 @@ router.post("/stamps/claim", async (req, res) => {
     // Get cafe location
     const [cafes] = await pool.query(
       "SELECT lat, lng FROM cafes WHERE id = ?",
-      'SELECT lat, lng FROM cafes WHERE id = ?',
       [cafeId]
     );
 
@@ -271,7 +270,7 @@ router.post("/stamps/claim", async (req, res) => {
     let verificationMethod = "haversine";
     
     // Verify user location
-    if (useGoogleMaps && process.env.GOOGLE_MAPS_API_KEY) {
+    if (useGoogleMaps && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       const googleDistance = await calculateDistanceWithGoogleMaps(
         `${lat},${lng}`,
         `${cafe.lat},${cafe.lng}`
@@ -299,15 +298,11 @@ router.post("/stamps/claim", async (req, res) => {
         verificationMethod: verificationMethod,
       });
     }
-    
-    // Check if user already has claimed stamp for a cafe
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const [existing] = await pool.query(
       `SELECT id FROM stamps 
        WHERE user_id = ? AND cafe_id = ?`,
-      [userId, cafeId, today]
+      [userId, cafeId]
     );
 
     if (existing.length > 0) {

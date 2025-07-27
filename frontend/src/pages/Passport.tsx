@@ -272,10 +272,10 @@ const CafePassport: React.FC = () => {
         <VStack align="start" spacing={3}>
           <Box w="full">
             <Heading size="md" color="gray.800" mb={1}>
-              {cafe.cafeName}
+              {cafe.name}
             </Heading>
             <Text color="gray.600" fontSize="sm" mb={2}>
-              {cafe.cafeLocation}
+              {cafe.address}
             </Text>
           </Box>
           
@@ -290,7 +290,7 @@ const CafePassport: React.FC = () => {
               <Button
                 colorScheme="blue"
                 size="sm"
-                onClick={() => claimStamp(cafe, cafe.name)}
+                onClick={() => claimStamp(cafe.id, cafe.name)}
                 isLoading={claimingStamp}
                 isDisabled={!userLocation}
                 leftIcon={<Icon as={Star} />}
