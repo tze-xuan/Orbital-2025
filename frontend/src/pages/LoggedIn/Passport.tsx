@@ -41,7 +41,7 @@ const getCurrentUser = () => {
   }
 };
 
-const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes/";
+const CAFE_API_ROUTE = "https://cafechronicles.vercel.app/api/cafes";
 const PASSPORT_API_ROUTE = "https://cafechronicles.vercel.app/api/passport/";
 
 const CafePassport: React.FC = () => {

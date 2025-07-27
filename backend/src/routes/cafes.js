@@ -69,8 +69,8 @@ router.get("/", async (req, res) => {
     const [rows] = await pool.execute(`
       SELECT 
         id,
-        cafe_name AS name, 
-        full_address AS address,  
+        cafeName,
+        cafeLocation,  
         lat,
         lng 
       FROM cafes
@@ -87,7 +87,7 @@ router.get("/", async (req, res) => {
     res.json(formattedCafes);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to fetch cafes" });
+    res.status(500).json({ error: error });
   } finally {
     if (connection) connection.release();
   }

@@ -122,19 +122,9 @@ const Cafes = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await Axios.get(CAFE_API_ROUTE, {
-        timeout: 10000,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-        // Add timestamp to prevent caching
-        params: {
-          _t: Date.now(),
-        },
-      });
+      const response = await Axios.get(
+        "https://cafechronicles.vercel.app/api/cafes"
+      );
 
       if (!Array.isArray(response.data)) {
         throw new Error("Invalid data format received");
@@ -158,7 +148,7 @@ const Cafes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [CAFE_API_ROUTE, toast]);
+  }, [toast]);
 
   // Bookmarks fetching
   const getBookmarks = useCallback(async () => {
