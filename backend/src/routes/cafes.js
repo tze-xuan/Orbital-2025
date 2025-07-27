@@ -53,6 +53,7 @@ router.post("/", async (req, res) => {
   }
 });
 
+// API endpoints
 // Get all
 router.get("/", async (req, res) => {
   let connection;
@@ -65,8 +66,17 @@ router.get("/", async (req, res) => {
     });
 
     connection = await pool.getConnection();
-    const [rows] = await connection.execute("SELECT * FROM cafes");
+    const [rows] = await pool.execute(`
+      SELECT 
+        id,
+        cafe_name AS name, 
+        full_address AS address,  
+        lat,
+        lng 
+      FROM cafes
+    `);
 
+    // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
       ...cafe,
       lat: Number(cafe.lat),
