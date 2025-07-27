@@ -81,6 +81,28 @@ router.get("/check-username", async (req, res) => {
   }
 });
 
+// (5) LOGOUT ROUTE ------
+router.post("/logout", (req, res) => {
+  console.log("Logging out user:", req.user?.username || "unknown");
+
+  req.logout((err) => {
+    if (err) {
+      console.error("Error during logout:", err);
+      return res.status(500).json({ error: "Logout failed" });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return res.status(500).json({ error: "Session cleanup failed" });
+      }
+
+      res.clearCookie("connect.sid"); // Clear the session cookie
+      res.json({ message: "Logout successful" });
+    });
+  });
+});
+
 // (6) USER ROUTE ------
 // GET ALL USERS
 router.get("/users", async (req, res) => {
