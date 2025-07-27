@@ -81,26 +81,108 @@ const CafePassport: React.FC = () => {
 
   // Handle API errors
   const handleApiError = (error: any) => {
-    let errorMessage = 'Network error. Please try again.';
+  // Default error message
+  let errorTitle = 'Error';
+  let errorMessage = 'An unexpected error occurred';
+  let status: 'error' | 'info' | 'warning' = 'error';
+  let duration = 5000;
+  let isClosable = true;
+  let action;
+
+  // Handle axios-specific errors
+  if (error.response) {
+    // Server responded with error status (4xx/5xx)
+    const { data, status: statusCode } = error.response;
     
-    if (error.response) {
-      errorMessage = error.response.data?.message || 
-                    `Server error: ${error.response.status}`;
-    } else if (error.request) {
-      errorMessage = 'No response from server. Check your connection.';
+    // Use backend-provided error message if available
+    if (data?.error) {
+      errorMessage = data.error;
     } else {
-      errorMessage = error.message || 'An unexpected error occurred';
+      errorMessage = `Server error (${statusCode})`;
     }
-    
-    setError(errorMessage);
-    toast({
-      title: 'Error',
-      description: errorMessage,
-      status: 'error',
-      duration: 5000,
-      isClosable: true,
-    });
-  };
+
+    // Special handling for specific error codes
+    if (data?.code) {
+      switch(data.code) {
+        case 'TOO_FAR_FROM_CAFE':
+          errorTitle = 'Too Far Away';
+          errorMessage = `You're ${data.distance}m from the cafe. Must be within ${data.threshold}m.`;
+          action = {
+            text: 'Refresh Location',
+            onClick: () => refreshLocation()
+          };
+          break;
+          
+        case 'ALREADY_CLAIMED_FROM_CAFE':
+          errorTitle = 'Already Collected';
+          errorMessage = 'You can only collect one stamp per cafe.';
+          status = 'info';
+          break;
+          
+        case 'CAFE_NOT_FOUND':
+          errorTitle = 'Cafe Not Available';
+          errorMessage = 'This cafe is no longer participating.';
+          break;
+          
+        case 'INVALID_COORDINATES':
+          errorTitle = 'Location Error';
+          errorMessage = 'Could not verify your location.';
+          break;
+      }
+    }
+  } else if (error.request) {
+    // Request was made but no response received
+    if (error.code === 'ECONNABORTED') {
+      errorTitle = 'Timeout';
+      errorMessage = 'Request took too long - please try again';
+    } else {
+      errorTitle = 'Network Error';
+      errorMessage = 'Could not connect to server. Check your internet connection.';
+    }
+  } else {
+    // Something happened in setting up the request
+    errorTitle = 'Application Error';
+    errorMessage = error.message || 'Failed to complete request';
+  }
+
+  // Set error state
+  setError(errorMessage);
+
+  // Show toast notification
+  toast({
+    title: errorTitle,
+    description: errorMessage,
+    status,
+    duration,
+    isClosable,
+    ...(action && { action }),
+  });
+
+  // Helper function for location refresh
+  function refreshLocation() {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        });
+        toast({
+          title: 'Location Updated',
+          status: 'success',
+          duration: 3000,
+        });
+      },
+      (err) => {
+        toast({
+          title: 'Location Error',
+          description: 'Failed to update location',
+          status: 'error',
+          duration: 5000,
+        });
+      }
+    );
+  }
+};
 
   // Fetch all cafes
   const fetchAllCafes = async () => {

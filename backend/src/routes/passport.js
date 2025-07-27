@@ -300,18 +300,23 @@ router.post("/stamps/claim", async (req, res) => {
       });
     }
     
-    // Check if user already has stamp today
+    // Check if user already has claimed stamp for a cafe
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const [existing] = await pool.query(
       `SELECT id FROM stamps 
-       WHERE user_id = ? AND cafe_id = ? AND created_at >= ?`,
+       WHERE user_id = ? AND cafe_id = ?`,
       [userId, cafeId, today]
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ message: "Already claimed stamp today" });
+      return res.status(409).json({
+        success: false,
+        error: "You've already collected a stamp from this cafe",
+        code: "ALREADY_CLAIMED_FROM_CAFE",
+        firstClaimed: existing[0].created_at
+      });
     }
 
     // Create new stamp
