@@ -234,7 +234,7 @@ const CafePassport: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      fetchUserStamps();
+      await fetchUserStamps();
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to claim stamp. Claim only at the cafe location. ';
       setError(errorMessage);
@@ -257,14 +257,10 @@ const CafePassport: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Check if user has stamp for cafe today
-  const hasStampToday = (cafeId) => {
-    const today = new Date().toDateString();
-    return userStamps.some(stamp => 
-      stamp.cafe_id === cafeId && 
-      new Date(stamp.created_at).toDateString() === today
-    );
-  };
+  // check if cafe stamp already claimed
+  const hasStampForCafe = (cafeId) => {
+  return userStamps.some(stamp => stamp.cafe_id === cafeId);
+};
 
   const CafeCard = ({ cafe }) => (
     <Card mb={4} shadow="md" borderWidth="1px">
@@ -281,10 +277,10 @@ const CafePassport: React.FC = () => {
           
           <Flex w="full" align="center">
             <Spacer />
-            {hasStampToday(cafe.id) ? (
+            {hasStampForCafe(cafe.id) ? (
               <Badge colorScheme="green" px={3} py={1} borderRadius="full" display="flex" alignItems="center">
                 <Icon as={CheckCircle} w={4} h={4} mr={1} />
-                Claimed Today
+                You've already collected a stamp from this café
               </Badge>
             ) : (
               <Button
@@ -300,7 +296,7 @@ const CafePassport: React.FC = () => {
             )}
           </Flex>
           
-          {!hasStampToday(cafe.id) && userLocation && (
+          {!hasStampForCafe(cafe.id) && userLocation && (
             <Alert status="info" borderRadius="md">
               <AlertIcon as={Star} />
               <Text fontSize="sm">Visit this cafe to claim your stamp!</Text>
@@ -329,12 +325,6 @@ const CafePassport: React.FC = () => {
                 {new Date(stamp.created_at).toLocaleTimeString()}
               </Text>
             </HStack>
-            {stamp.verification_distance && (
-              <HStack spacing={1} color="gray.500" fontSize="sm">
-                <Icon as={CheckCircle} w={4} h={4} />
-                <Text>Verified at {stamp.verification_distance}m distance</Text>
-              </HStack>
-            )}
           </VStack>
           <Icon as={Star} w={8} h={8} color="yellow.400" />
         </Flex>
@@ -488,7 +478,7 @@ const CafePassport: React.FC = () => {
                   </Center>
                 ) : (
                   <VStack w="full" spacing={0}>
-                    {userStamps.map((stamp) => (
+                    {userStamps && userStamps.map(stamp => (
                       <StampCard key={stamp.id} stamp={stamp} />
                     ))}
                   </VStack>
