@@ -189,22 +189,28 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
 
 // Get all cafes from database
 router.get("/cafes", async (req, res) => {
+  let connection;
   try {
-    const [cafes] = await pool.query("SELECT * FROM cafes");
+    connection = await pool.getConnection();
+    const [cafes] = await connection.execute("SELECT * FROM cafes");
     res.json(cafes);
   } catch (error) {
     console.error("Error fetching cafes:", error);
     res.status(500).json({ message: "Error fetching cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Get nearby cafes (within 500 meters)
 router.post("/cafes/nearby", async (req, res) => {
+  let connection;
   try {
     const { lat, lng, radius = 500, useGoogleMaps = false } = req.body;
+    connection = await pool.getConnection();
     
     // Get all cafes
-    const [cafes] = await pool.query("SELECT * FROM cafes");
+    const [cafes] = await connection.execute("SELECT * FROM cafes");
 
     let nearbyCafes;
 
@@ -247,16 +253,20 @@ router.post("/cafes/nearby", async (req, res) => {
   } catch (error) {
     console.error("Error fetching nearby cafes:", error);
     res.status(500).json({ message: "Error fetching nearby cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Claim a stamp
 router.post("/stamps/claim", async (req, res) => {
+  let connection;
   try {
     const { userId, cafeId, lat, lng, useGoogleMaps = false } = req.body;
+    connection = await pool.getConnection();
     
     // Get cafe location
-    const [cafes] = await pool.query(
+    const [cafes] = await connection.execute(
       "SELECT lat, lng FROM cafes WHERE id = ?",
       [cafeId]
     );
@@ -299,7 +309,7 @@ router.post("/stamps/claim", async (req, res) => {
       });
     }
 
-    const [existing] = await pool.query(
+    const [existing] = await connection.execute(
       `SELECT id FROM stamps 
        WHERE user_id = ? AND cafe_id = ?`,
       [userId, cafeId]
@@ -315,13 +325,13 @@ router.post("/stamps/claim", async (req, res) => {
     }
 
     // Create new stamp
-    await pool.query("INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)", [
+    await connection.execute("INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)", [
       userId,
       cafeId,
     ]);
 
     // Get updated stamp count
-    const [stamps] = await pool.query(
+    const [stamps] = await connection.execute(
       "SELECT COUNT(*) AS count FROM stamps WHERE user_id = ?",
       [userId]
     );
@@ -337,27 +347,46 @@ router.post("/stamps/claim", async (req, res) => {
   } catch (error) {
     console.error("Error claiming stamp:", error);
     res.status(500).json({ message: "Error claiming stamp" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // Get user stamps
 router.get("/users/:userId/stamps", async (req, res) => {
+  let connection;
   try {
     const userId = req.params.userId;
+    connection = await pool.getConnection();
 
-    const [stamps] = await pool.query(
-      `SELECT s.id, s.created_at, c.name AS cafe_name, c.address 
+    // Validate user ID
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({ 
+        error: "Invalid user ID provided" 
+      });
+    }
+
+    const [stamps] = await connection.execute(
+      `SELECT s.*, c.name AS cafe_name, c.address 
        FROM stamps s
        JOIN cafes c ON s.cafe_id = c.id
        WHERE s.user_id = ?
        ORDER BY s.created_at DESC`,
-      [userId]
+      [parseInt(userId)]
     );
 
+    // Handle empty results
+    if (stamps.length === 0) {
+      return res.status(404).json({ message: "No stamps found" });
+    }
+
     res.json(stamps);
+    
   } catch (error) {
     console.error("Error fetching user stamps:", error);
     res.status(500).json({ message: "Error fetching stamps" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

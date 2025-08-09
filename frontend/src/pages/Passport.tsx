@@ -25,6 +25,7 @@ import {
   Spacer,
   Heading,
 } from '@chakra-ui/react';
+import { RepeatIcon } from '@chakra-ui/icons';
 import { FaHome } from "react-icons/fa";
 import { Coffee, Star, Clock, Award, CheckCircle } from 'lucide-react';
 import axios from "axios";
@@ -201,23 +202,67 @@ const CafePassport: React.FC = () => {
 
   // Fetch user stamps
   const fetchUserStamps = async () => {
+    if (!currentUserId) return;
+
     try {
-      const response = await axios.get(`https://cafechronicles.vercel.app/api/passport/users/${currentUserId}/stamps`);
-      setUserStamps(response.data);
+      const response = await axios.get(`https://cafechronicles.vercel.app/api/passport/users/${currentUserId}/stamps?t=${Date.now()}`,
+    {
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
+    const formattedStamps = response.data.map(stamp => ({
+      ...stamp,
+      created_at: stamp.created_at || new Date().toISOString() // fallback
+    }));
+
+    setUserStamps(formattedStamps);
     } catch (err) {
       console.error('Error fetching stamps:', err);
+      setError('Failed to load stamps');
+      toast({
+        title: 'Error',
+        description: 'Could not load your stamps',
+        status: 'error',
+        duration: 5000,
+      });
     }
   };
 
   // Claim stamp at cafe
   const claimStamp = async (cafeId, cafeName) => {
+    if (!currentUserId) return;
+
+    // check for existing stamp
+    if (userStamps.some(stamp => stamp.cafe_id === cafeId)) {
+      toast({
+        title: 'Already Claimed',
+        description: `You've already collected a stamp from ${cafeName}!`,
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+    setClaimingStamp(true);
+
     if (!userLocation) {
       setError('Location not available');
       return;
     }
 
-    setClaimingStamp(true);
+    const tempStampId = Date.now();
     try {
+      setUserStamps(prev => [
+        ...prev,
+        { id: tempStampId, 
+        cafe_id: cafeId, 
+        cafe_name: cafeName, 
+        created_at: new Date().toISOString(),
+        isTemp: true
+        } // Temporary data
+      ]);
+
       const response = await axios.post(`https://cafechronicles.vercel.app/api/passport/stamps/claim`, {
         userId: currentUserId,
         cafeId: cafeId,
@@ -226,7 +271,8 @@ const CafePassport: React.FC = () => {
         useGoogleMaps: false
       });
 
-      setError('')
+      await fetchUserStamps();
+
       toast({
         title: 'Stamp Claimed! 🎉',
         description: `You've collected a stamp from ${cafeName}! Total: ${response.data.stampCount}`,
@@ -234,8 +280,9 @@ const CafePassport: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
-      await fetchUserStamps();
+
     } catch (err) {
+      setUserStamps(prev => prev.filter(stamp => stamp.id !== tempStampId));
       const errorMessage = err.response?.data?.message || 'Failed to claim stamp. Claim only at the cafe location. ';
       setError(errorMessage);
       toast({
@@ -250,17 +297,16 @@ const CafePassport: React.FC = () => {
     }
   };
 
+  const hasStampForCafe = (cafeId) => {
+    return userStamps.some(stamp => stamp.cafe_id === cafeId);
+  };
+
   // Load user stamps when switching to stamps tab
   useEffect(() => {
-    if (activeTab === 'stamps') {
+    if (activeTab === 'stamps' && currentUserId) {
       fetchUserStamps();
     }
-  }, [activeTab]);
-
-  // check if cafe stamp already claimed
-  const hasStampForCafe = (cafeId) => {
-  return userStamps.some(stamp => stamp.cafe_id === cafeId);
-};
+  }, [activeTab, currentUserId]);
 
   const CafeCard = ({ cafe }) => (
     <Card mb={4} shadow="md" borderWidth="1px">
@@ -332,7 +378,7 @@ const CafePassport: React.FC = () => {
     </Card>
   );
 
-  return (
+  return ( 
     <Box 
       minH="100vh" 
       bg="linear-gradient(135deg, #f8f3e9 0%, #e9dcc9 100%)"
@@ -399,13 +445,22 @@ const CafePassport: React.FC = () => {
         )}
 
         {/* Tabs */}
-        <Tabs colorScheme="#FEF1C5" variant="enclosed">
+        <Tabs 
+          colorScheme="#FEF1C5" 
+          variant="enclosed" 
+          index={activeTab === 'cafes' ? 0 : 1}
+          onChange={(index) => {
+            const newTab = index === 0 ? 'cafes' : 'stamps';
+            console.log('🏷️ Tab changed to:', newTab); // Debug log
+            setActiveTab(newTab);
+          }}
+        >
           <TabList bg="white" borderRadius="lg" shadow="sm" p={1}>
             <Tab flex="1" _selected={{ bg: 'blue.500', color: 'white' }}>
               <Icon as={Coffee} w={4} h={4} mr={2} />
               Collect Stamps
             </Tab>
-            <Tab flex="1" _selected={{ bg: 'blue.500', color: 'white' }} onClick={fetchUserStamps}>
+            <Tab flex="1" _selected={{ bg: 'blue.500', color: 'white' }}>
               <Icon as={Star} w={4} h={4} mr={2} />
               My Stamps
             </Tab>
@@ -464,9 +519,18 @@ const CafePassport: React.FC = () => {
             {/* My Stamps Tab */}
             <TabPanel p={0}>
               <VStack align="start" spacing={4}>
-                <Heading size="lg" color="gray.800">
-                  My Stamp Collection ({userStamps.length})
-                </Heading>
+                <Flex w="full" justify="space-between" align="center">
+                  <Heading size="lg" color="gray.800">
+                    My Stamp Collection ({userStamps.length})
+                  </Heading>
+                  <IconButton
+                    icon={<RepeatIcon />}
+                    aria-label="Refresh stamps"
+                    onClick={fetchUserStamps}
+                    size="sm"
+                    isLoading={loading}
+                  />
+                </Flex>
                 
                 {userStamps.length === 0 ? (
                   <Center py={8} w="full">
