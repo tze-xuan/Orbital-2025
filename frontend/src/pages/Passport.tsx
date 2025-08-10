@@ -231,71 +231,79 @@ const CafePassport: React.FC = () => {
 
   // Claim stamp at cafe
   const claimStamp = async (cafeId, cafeName) => {
-    if (!currentUserId) return;
+  if (!currentUserId) return;
 
-    // check for existing stamp
-    if (userStamps.some(stamp => stamp.cafe_id === cafeId)) {
-      toast({
-        title: 'Already Claimed',
-        description: `You've already collected a stamp from ${cafeName}!`,
-        status: 'warning',
-        duration: 5000,
-        isClosable: true,
-      });
-      return;
-    }
-    setClaimingStamp(true);
+  // Check for existing stamp
+  if (userStamps.some(stamp => stamp.cafe_id === cafeId)) {
+    toast({
+      title: 'Already Claimed',
+      description: `You've already collected a stamp from ${cafeName}!`,
+      status: 'warning',
+      duration: 5000,
+      isClosable: true,
+    });
+    return;
+  }
 
-    if (!userLocation) {
-      setError('Location not available');
-      return;
-    }
+  setClaimingStamp(true);
 
-    const tempStampId = Date.now();
-    try {
-      setUserStamps(prev => [
-        ...prev,
-        { id: tempStampId, 
-        cafe_id: cafeId, 
-        cafe_name: cafeName, 
-        created_at: new Date().toISOString(),
-        isTemp: true
-        } // Temporary data
-      ]);
+  if (!userLocation) {
+    setError('Location not available');
+    setClaimingStamp(false);
+    return;
+  }
 
-      const response = await axios.post(`https://cafechronicles.vercel.app/api/passport/stamps/claim`, {
-        userId: currentUserId,
-        cafeId: cafeId,
-        lat: userLocation.lat,
-        lng: userLocation.lng,
-        useGoogleMaps: false
-      });
+  try {
+    // Make API call first (no optimistic update)
+    const response = await axios.post(`https://cafechronicles.vercel.app/api/passport/stamps/claim`, {
+      userId: currentUserId,
+      cafeId: cafeId,
+      lat: userLocation.lat,
+      lng: userLocation.lng,
+      useGoogleMaps: false
+    });
 
-      await fetchUserStamps();
+    console.log('Stamp claim response:', response.data);
 
-      toast({
-        title: 'Stamp Claimed! 🎉',
-        description: `You've collected a stamp from ${cafeName}! Total: ${response.data.stampCount}`,
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+    // Add the new stamp directly to state (more reliable than refetching)
+    const newStamp = {
+      id: Date.now(), // temporary ID
+      cafe_id: cafeId,
+      cafe_name: cafeName,
+      user_id: currentUserId,
+      created_at: new Date().toISOString(),
+      // Add any other fields your stamps have
+    };
 
-    } catch (err) {
-      setUserStamps(prev => prev.filter(stamp => stamp.id !== tempStampId));
-      const errorMessage = err.response?.data?.message || 'Failed to claim stamp. Claim only at the cafe location. ';
-      setError(errorMessage);
-      toast({
-        title: 'Claim Failed',
-        description: errorMessage,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setClaimingStamp(false);
-    }
-  };
+    setUserStamps(prev => [newStamp, ...prev]); // Add to beginning for newest-first order
+
+    toast({
+      title: 'Stamp Claimed! 🎉',
+      description: `You've collected a stamp from ${cafeName}! Total: ${response.data.stampCount}`,
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    });
+
+    // Optional: Fetch fresh data after a short delay to sync with backend
+    setTimeout(() => {
+      fetchUserStamps();
+    }, 2000);
+
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || 'Failed to claim stamp. Claim only at the cafe location.';
+    setError(errorMessage);
+    toast({
+      title: 'Claim Failed',
+      description: errorMessage,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+    });
+  } finally {
+    setClaimingStamp(false);
+  }
+};
 
   const hasStampForCafe = (cafeId) => {
     return userStamps.some(stamp => stamp.cafe_id === cafeId);

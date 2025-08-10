@@ -280,7 +280,7 @@ router.post("/stamps/claim", async (req, res) => {
 
     // Get cafe location
     const [cafes] = await connection.execute(
-      "SELECT lat, lng FROM cafes WHERE id = ?",
+      "SELECT lat, lng, name FROM cafes WHERE id = ?",
       [cafeId]
     );
 
@@ -338,10 +338,17 @@ router.post("/stamps/claim", async (req, res) => {
     }
 
     // Create new stamp
-    await connection.execute(
-      "INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)",
-      [userId, cafeId]
-    );
+    await connection.beginTransaction();
+    try {
+      await connection.execute("INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)", [
+        userId,
+        cafeId,
+      ]);
+      await connection.commit();
+    } catch (error) {
+        await connection.rollback();
+          throw error;
+    }
 
     // Get updated stamp count
     const [stamps] = await connection.execute(
@@ -393,6 +400,7 @@ router.get("/users/:userId/stamps", async (req, res) => {
     }
 
     res.json(stamps);
+
   } catch (error) {
     console.error("Error fetching user stamps:", error);
     res.status(500).json({ message: "Error fetching stamps" });
