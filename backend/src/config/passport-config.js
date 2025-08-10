@@ -4,25 +4,33 @@ const pool = require("./db.js");
 const LocalStrategy = passportLocal.Strategy;
 
 async function getUserByUsername(username) {
+  let connection;
   const normalizedUsername = username.trim().toLowerCase();
   try {
     const [rows] = await pool.execute(
       "SELECT * FROM users WHERE username = ?",
       [normalizedUsername]
     );
+    connection = await pool.getConnection();
     return rows[0] || null;
   } catch (error) {
     throw error;
+  } finally {
+    if (connection) connection.release();
   }
 }
 
 async function getUserById(id) {
+  let connection;
   try {
     const [rows] = await pool.execute("SELECT * FROM users WHERE id = ?", [id]);
+    connection = await pool.getConnection();
     return rows[0] || null;
   } catch (error) {
     console.error("Database error:", error);
     throw error;
+  } finally {
+    if (connection) connection.release();
   }
 }
 

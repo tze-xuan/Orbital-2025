@@ -10,8 +10,10 @@ const mapsClient = new Client({});
 
 // Save cafe and get coordinates
 app.post("/", async (req, res) => {
+  let connection;
   try {
     const { cafeName, cafeLocation } = req.body;
+    connection = await pool.getConnection();
 
     // First geocode the location
     const geocodeResponse = await mapsClient.geocode({
@@ -46,13 +48,17 @@ app.post("/", async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     res.json(error);
+  } finally {
+    if (connection) connection.release();
   }
 });
 
 // API endpoint to get locations
 app.get("/", async (req, res) => {
+  let connection;
   try {
     const [rows] = await pool.execute("SELECT * FROM cafes");
+    connection = await pool.getConnection();
 
     // Transform data to ensure correct format
     const formattedCafes = rows.map((cafe) => ({
@@ -65,6 +71,8 @@ app.get("/", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch cafes" });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
