@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Container,
@@ -24,9 +24,10 @@ import {
   Flex,
   Spacer,
   Heading,
+  Divider,
 } from "@chakra-ui/react";
 import { FaHome } from "react-icons/fa";
-import { Coffee, Star, Clock, Award, CheckCircle } from "lucide-react";
+import { Coffee, Star, Clock, Award, CheckCircle, MapPin } from "lucide-react";
 import axios from "axios";
 
 const getCurrentUser = () => {
@@ -53,6 +54,7 @@ const CafePassport: React.FC = () => {
   const [claimingStamp, setClaimingStamp] = useState(false);
   const [activeTab] = useState("cafes");
   const toast = useToast();
+
   const currentUser = getCurrentUser();
   const currentUserId = currentUser?.id || null;
 
@@ -60,7 +62,6 @@ const CafePassport: React.FC = () => {
   const handleApiError = useCallback(
     (error: any) => {
       let errorMessage = "Network error. Please try again.";
-
       if (error.response) {
         errorMessage =
           error.response.data?.message ||
@@ -70,7 +71,6 @@ const CafePassport: React.FC = () => {
       } else {
         errorMessage = error.message || "An unexpected error occurred";
       }
-
       setError(errorMessage);
       toast({
         title: "Error",
@@ -103,7 +103,7 @@ const CafePassport: React.FC = () => {
     try {
       const response = await axios.get(
         `${PASSPORT_API_ROUTE}users/${currentUserId}/stamps`
-      ); //url likely wrong
+      );
       setUserStamps(response.data);
     } catch (err) {
       console.error("Error fetching stamps:", err);
@@ -116,7 +116,6 @@ const CafePassport: React.FC = () => {
       setError("Location not available");
       return;
     }
-
     setClaimingStamp(true);
     try {
       const response = await axios.post(`${PASSPORT_API_ROUTE}stamps/claim`, {
@@ -126,7 +125,6 @@ const CafePassport: React.FC = () => {
         lng: userLocation.lng,
         useGoogleMaps: false,
       });
-
       setError("");
       toast({
         title: "Stamp Claimed! 🎉",
@@ -142,7 +140,6 @@ const CafePassport: React.FC = () => {
         "Failed to claim stamp. Claim only at the cafe location. ";
       setError(errorMessage);
       console.log(err.response.data);
-
       toast({
         title: "Claim Failed",
         description: errorMessage,
@@ -173,40 +170,73 @@ const CafePassport: React.FC = () => {
   };
 
   const CafeCard = ({ cafe }) => (
-    <Card mb={4} shadow="md" borderWidth="1px">
-      <CardBody>
-        <VStack align="start" spacing={3}>
+    <Card
+      mb={6}
+      shadow="lg"
+      borderRadius="20px"
+      bg="white"
+      border="1px solid"
+      borderColor="orange.100"
+      overflow="hidden"
+      transition="all 0.3s ease"
+      _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
+      width="50vw"
+    >
+      <CardBody p={6}>
+        <VStack align="start" spacing={4}>
           <Box w="full">
-            <Heading size="md" color="gray.800" mb={1}>
+            <Heading
+              size="lg"
+              color="#DC6739"
+              mb={2}
+              fontFamily="afacad"
+              fontWeight="black"
+            >
               {cafe.cafeName}
             </Heading>
-            <Text color="gray.600" fontSize="sm" mb={2}>
-              {cafe.cafeLocation}
-            </Text>
+            <HStack spacing={2} mb={3}>
+              <Icon as={MapPin} w={4} h={4} color="gray.500" />
+              <Text color="gray.600" fontSize="md" fontFamily="afacad">
+                {cafe.cafeLocation}
+              </Text>
+            </HStack>
+            <Divider borderColor="orange.100" />
           </Box>
 
-          <Flex w="full" align="center">
+          <Flex w="full" align="center" pt={2}>
             <Spacer />
             {hasStampToday(cafe.id) ? (
               <Badge
                 colorScheme="green"
-                px={3}
-                py={1}
+                px={4}
+                py={2}
                 borderRadius="full"
                 display="flex"
                 alignItems="center"
+                fontSize="sm"
+                fontFamily="afacad"
+                fontWeight="bold"
               >
-                <Icon as={CheckCircle} w={4} h={4} mr={1} />
+                <Icon as={CheckCircle} w={4} h={4} mr={2} />
                 Claimed Today
               </Badge>
             ) : (
               <Button
-                colorScheme="blue"
-                size="sm"
+                bg="#FFCE58"
+                color="#DC6739"
+                size="md"
                 onClick={() => claimStamp(cafe.id, cafe.cafeName)}
                 isLoading={claimingStamp}
                 isDisabled={!userLocation}
                 leftIcon={<Icon as={Star} />}
+                borderRadius="full"
+                px={6}
+                py={3}
+                fontFamily="afacad"
+                fontWeight="bold"
+                _hover={{ bg: "#FFD700", transform: "scale(1.05)" }}
+                _active={{ transform: "scale(0.95)" }}
+                transition="all 0.2s ease"
               >
                 Claim Stamp
               </Button>
@@ -214,9 +244,17 @@ const CafePassport: React.FC = () => {
           </Flex>
 
           {!hasStampToday(cafe.id) && userLocation && (
-            <Alert status="info" borderRadius="md">
-              <AlertIcon as={Star} />
-              <Text fontSize="sm">Visit this cafe to claim your stamp!</Text>
+            <Alert
+              status="info"
+              borderRadius="15px"
+              bg="blue.50"
+              border="1px solid"
+              borderColor="blue.200"
+            >
+              <AlertIcon as={Star} color="blue.500" />
+              <Text fontSize="sm" fontFamily="afacad" color="blue.700">
+                Visit this cafe to claim your stamp!
+              </Text>
             </Alert>
           )}
         </VStack>
@@ -225,31 +263,60 @@ const CafePassport: React.FC = () => {
   );
 
   const StampCard = ({ stamp }) => (
-    <Card mb={4} shadow="md" borderWidth="1px">
-      <CardBody>
+    <Card
+      mb={6}
+      shadow="lg"
+      borderRadius="20px"
+      bg="gradient-to-r from-yellow-50 to-orange-50"
+      border="1px solid"
+      borderColor="yellow.200"
+      overflow="hidden"
+      width="50vw"
+    >
+      <CardBody p={6}>
         <Flex align="start">
-          <VStack align="start" spacing={2} flex="1">
-            <Heading size="md" color="gray.800">
+          <VStack align="start" spacing={3} flex="1">
+            <Heading
+              size="md"
+              color="#DC6739"
+              fontFamily="afacad"
+              fontWeight="black"
+            >
               {stamp.cafe_name}
             </Heading>
-            <Text color="gray.600" fontSize="sm">
-              {stamp.address}
-            </Text>
-            <HStack spacing={1} color="gray.500" fontSize="sm">
+            <HStack spacing={2}>
+              <Icon as={MapPin} w={4} h={4} color="gray.500" />
+              <Text color="gray.600" fontSize="sm" fontFamily="afacad">
+                {stamp.address}
+              </Text>
+            </HStack>
+            <HStack spacing={2} color="gray.500" fontSize="sm">
               <Icon as={Clock} w={4} h={4} />
-              <Text>
+              <Text fontFamily="afacad">
                 {new Date(stamp.created_at).toLocaleDateString()} at{" "}
                 {new Date(stamp.created_at).toLocaleTimeString()}
               </Text>
             </HStack>
             {stamp.verification_distance && (
-              <HStack spacing={1} color="gray.500" fontSize="sm">
+              <HStack spacing={2} color="green.600" fontSize="sm">
                 <Icon as={CheckCircle} w={4} h={4} />
-                <Text>Verified at {stamp.verification_distance}m distance</Text>
+                <Text fontFamily="afacad">
+                  Verified at {stamp.verification_distance}m distance
+                </Text>
               </HStack>
             )}
           </VStack>
-          <Icon as={Star} w={8} h={8} color="yellow.400" />
+          <Box
+            bg="yellow.400"
+            borderRadius="full"
+            p={3}
+            shadow="lg"
+            transform="rotate(15deg)"
+            _hover={{ transform: "rotate(0deg)" }}
+            transition="transform 0.3s ease"
+          >
+            <Icon as={Star} w={8} h={8} color="white" />
+          </Box>
         </Flex>
       </CardBody>
     </Card>
@@ -276,140 +343,184 @@ const CafePassport: React.FC = () => {
     } else {
       setError("Geolocation is not supported by this browser.");
     }
-
     // Fetch all cafes on load
     fetchAllCafes();
   }, [fetchAllCafes]);
 
   return (
-    <Box
-      minH="100vh"
-      bg="linear-gradient(135deg, #f8f3e9 0%, #e9dcc9 100%)"
-      backgroundSize="200px"
-    >
+    <Box minH="100vh">
       {/* Header */}
-      <Box bg="#FEF1C5" shadow="sm" borderBottomWidth="1px">
-        <Container maxW="md" py={12}>
-          <Flex align="center" justify="space-between">
+      <Box bg="white" shadow="xl" borderBottomWidth="2px">
+        <Container maxW="md" py={8}>
+          <Flex align="center" justify="center">
             <IconButton
               as="a"
               href="/dashboard"
-              my={3}
-              mr={5}
               icon={<FaHome />}
               aria-label="Go back to home"
-              bg="#3970B5"
+              bg="#DC6739"
               color="white"
               size="lg"
-              shadow="dark-lg"
-              _hover={{ shadow: "inner" }}
-            >
-              FiHiking
-            </IconButton>
-            <HStack spacing={5}>
-              <Icon as={Coffee} w={14} h={14} color="#DC6739" />
-              <VStack align="start" spacing={0}>
-                <Heading
-                  size="lg"
-                  variant="plain"
-                  fontFamily="darumadrop"
-                  color="#DC6739"
-                  fontSize={`4xl`}
-                >
-                  Café Passport
-                </Heading>
-                <Text color="gray.600" fontSize="m">
-                  Collect stamps, discover cafes
-                </Text>
-              </VStack>
-            </HStack>
-            <Badge
-              colorScheme="orange"
-              px={3}
-              py={1}
               borderRadius="full"
-              display="flex"
-              alignItems="center"
-            >
-              <Icon as={Award} w={4} h={4} mr={1} />
-              {userStamps.length} stamps
-            </Badge>
+              shadow="lg"
+              _hover={{ bg: "#B8562E", transform: "scale(1.1)" }}
+              _active={{ transform: "scale(0.9)" }}
+              transition="all 0.2s ease"
+            />
           </Flex>
         </Container>
       </Box>
 
       {/* Content */}
-      <Container maxW="md" py={6}>
+      <Container maxW="md" py={8}>
         {/* Error Message */}
         {error && (
-          <Alert status="error" mb={4} borderRadius="md">
+          <Alert
+            status="error"
+            mb={6}
+            borderRadius="15px"
+            bg="red.50"
+            border="1px solid"
+            borderColor="red.200"
+          >
             <AlertIcon />
-            {error}
+            <Text fontFamily="afacad">{error}</Text>
           </Alert>
         )}
 
         {/* Location Status */}
         {!userLocation && (
-          <Alert status="warning" mb={4} borderRadius="md">
+          <Alert
+            status="warning"
+            mb={6}
+            borderRadius="15px"
+            bg="yellow.50"
+            border="1px solid"
+            borderColor="yellow.200"
+          >
             <AlertIcon />
-            Location access needed to claim stamps
+            <Text fontFamily="afacad">
+              Location access needed to claim stamps
+            </Text>
           </Alert>
         )}
 
         {/* Tabs */}
-        <Tabs colorScheme="#FEF1C5" variant="enclosed">
-          <TabList bg="white" borderRadius="lg" shadow="sm" p={1}>
-            <Tab flex="1" _selected={{ bg: "blue.500", color: "white" }}>
-              <Icon as={Coffee} w={4} h={4} mr={2} />
+        <Tabs colorScheme="orange" variant="soft-rounded">
+          <TabList bg="white" borderRadius="20px" shadow="lg" p={2} mb={6}>
+            <Tab
+              flex="1"
+              fontFamily="afacad"
+              fontWeight="bold"
+              _selected={{ bg: "#DC6739", color: "white" }}
+              borderRadius="15px"
+              mx={1}
+            >
+              <Icon as={Coffee} w={5} h={5} mr={2} />
               Collect Stamps
             </Tab>
             <Tab
               flex="1"
-              _selected={{ bg: "blue.500", color: "white" }}
+              fontFamily="afacad"
+              fontWeight="bold"
+              _selected={{ bg: "#DC6739", color: "white" }}
+              borderRadius="15px"
+              mx={1}
               onClick={fetchUserStamps}
             >
-              <Icon as={Star} w={4} h={4} mr={2} />
+              <Icon as={Star} w={5} h={5} mr={2} />
               My Stamps
             </Tab>
           </TabList>
 
-          <TabPanels mt={4}>
+          <TabPanels>
             {/* Collect Stamps Tab */}
             <TabPanel p={0}>
-              <VStack align="start" spacing={4}>
-                <Heading
-                  size="lg"
-                  color="orange.800"
-                  fontFamily="'Playfair Display', serif"
-                  fontWeight="bold"
-                  pb={2}
-                >
-                  Discover Cafés
-                </Heading>
-                <Text color="orange.700" fontSize="md" mb={4}>
-                  Visit these cafés to collect stamps in your passport
-                </Text>
+              <VStack align="start" spacing={6}>
+                <Flex dir="row" width="100%" gap={20} alignItems="center">
+                  <VStack spacing={1}>
+                    <HStack spacing={3}>
+                      <Icon as={Coffee} w={10} h={10} color="#DC6739" />
+                      <Heading
+                        size="xl"
+                        fontFamily="afacad"
+                        fontWeight="black"
+                        color="#DC6739"
+                        fontSize="3xl"
+                        letterSpacing="tight"
+                      >
+                        Café Passport
+                      </Heading>
+                    </HStack>
+                    <Text
+                      color="gray.600"
+                      fontSize="md"
+                      fontFamily="afacad"
+                      fontWeight="medium"
+                    >
+                      Collect stamps, discover cafes
+                    </Text>
+                  </VStack>
+                  <Badge
+                    bg="#FFCE58"
+                    color="#DC6739"
+                    px={4}
+                    py={2}
+                    borderRadius="full"
+                    display="flex"
+                    alignItems="center"
+                    fontSize="sm"
+                    fontFamily="afacad"
+                    fontWeight="bold"
+                    shadow="md"
+                    height="5vh"
+                  >
+                    <Icon as={Award} w={4} h={4} mr={2} />
+                    {userStamps.length}
+                  </Badge>
+                </Flex>
 
                 {loading ? (
-                  <Center py={8} w="full">
+                  <Center py={12} w="full">
                     <VStack spacing={4}>
-                      <Spinner size="xl" color="orange.500" thickness="3px" />
-                      <Text color="gray.600">Loading cafés...</Text>
+                      <Spinner size="xl" color="#DC6739" thickness="4px" />
+                      <Text color="gray.600" fontFamily="afacad" fontSize="lg">
+                        Loading cafés...
+                      </Text>
                     </VStack>
                   </Center>
                 ) : allCafes.length === 0 ? (
-                  <Center py={8} w="full">
-                    <VStack spacing={4}>
-                      <Icon as={Coffee} w={12} h={12} color="gray.400" />
-                      <Text color="gray.600">No cafés available</Text>
-                      <Text color="gray.500" fontSize="sm">
-                        Check back later for new cafés
-                      </Text>
+                  <Center py={12} w="full">
+                    <VStack spacing={6}>
+                      <Icon as={Coffee} w={16} h={16} color="gray.400" />
+                      <VStack spacing={2}>
+                        <Text
+                          color="gray.600"
+                          fontFamily="afacad"
+                          fontSize="lg"
+                          fontWeight="bold"
+                        >
+                          No cafés available
+                        </Text>
+                        <Text
+                          color="gray.500"
+                          fontSize="md"
+                          fontFamily="afacad"
+                        >
+                          Check back later for new cafés
+                        </Text>
+                      </VStack>
                       <Button
-                        colorScheme="orange"
-                        variant="outline"
-                        size="sm"
+                        bg="#FFCE58"
+                        color="#DC6739"
+                        variant="solid"
+                        size="md"
                         onClick={fetchAllCafes}
+                        borderRadius="full"
+                        px={6}
+                        fontFamily="afacad"
+                        fontWeight="bold"
+                        _hover={{ bg: "#FFD700" }}
                       >
                         Refresh
                       </Button>
@@ -427,19 +538,39 @@ const CafePassport: React.FC = () => {
 
             {/* My Stamps Tab */}
             <TabPanel p={0}>
-              <VStack align="start" spacing={4}>
-                <Heading size="lg" color="gray.800">
-                  My Stamp Collection ({userStamps.length})
-                </Heading>
+              <VStack align="start" spacing={6}>
+                <Box>
+                  <Heading
+                    size="xl"
+                    color="#DC6739"
+                    fontFamily="afacad"
+                    fontWeight="black"
+                  >
+                    My Stamp Collection ({userStamps.length})
+                  </Heading>
+                </Box>
 
                 {userStamps.length === 0 ? (
-                  <Center py={8} w="full">
-                    <VStack spacing={4}>
-                      <Icon as={Star} w={12} h={12} color="gray.400" />
-                      <Text color="gray.600">No stamps collected yet</Text>
-                      <Text color="gray.500" fontSize="sm">
-                        Visit cafes to start collecting!
-                      </Text>
+                  <Center py={12} w="full">
+                    <VStack spacing={6}>
+                      <Icon as={Star} w={16} h={16} color="gray.400" />
+                      <VStack spacing={2}>
+                        <Text
+                          color="gray.600"
+                          fontFamily="afacad"
+                          fontSize="lg"
+                          fontWeight="bold"
+                        >
+                          No stamps collected yet
+                        </Text>
+                        <Text
+                          color="gray.500"
+                          fontSize="md"
+                          fontFamily="afacad"
+                        >
+                          Visit cafes to start collecting!
+                        </Text>
+                      </VStack>
                     </VStack>
                   </Center>
                 ) : (
