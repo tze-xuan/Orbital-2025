@@ -3,10 +3,9 @@ const express = require("express");
 const pool = require("../config/db");
 const router = express.Router();
 const axios = require("axios");
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
-const axios = require('axios');
 
 // middleware
 app.use(cors());
@@ -118,27 +117,33 @@ async function batchCalculateDistances(userLat, userLng, cafes) {
 // Calculate distance using Google Maps Distance Matrix API
 async function calculateDistanceWithGoogleMaps(origins, destinations) {
   try {
-    const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-      params: {
-        origins: origins,
-        destinations: destinations,
-        units: 'metric',
-        mode: 'walking', // or 'driving', 'transit', 'bicycling'
-        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/distancematrix/json",
+      {
+        params: {
+          origins: origins,
+          destinations: destinations,
+          units: "metric",
+          mode: "walking", // or 'driving', 'transit', 'bicycling'
+          key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+        },
       }
-    });
+    );
 
-    if (response.data.status === 'OK' && response.data.rows[0].elements[0].status === 'OK') {
+    if (
+      response.data.status === "OK" &&
+      response.data.rows[0].elements[0].status === "OK"
+    ) {
       return {
         distance: response.data.rows[0].elements[0].distance.value, // in meters
         duration: response.data.rows[0].elements[0].duration.value, // in seconds
         distanceText: response.data.rows[0].elements[0].distance.text,
-        durationText: response.data.rows[0].elements[0].duration.text
+        durationText: response.data.rows[0].elements[0].duration.text,
       };
     }
     return null;
   } catch (error) {
-    console.error('Google Maps API error:', error);
+    console.error("Google Maps API error:", error);
     return null;
   }
 }
@@ -147,42 +152,52 @@ async function calculateDistanceWithGoogleMaps(origins, destinations) {
 async function batchCalculateDistances(userLat, userLng, cafes) {
   try {
     const origins = `${userLat},${userLng}`;
-    const destinations = cafes.map(cafe => `${cafe.lat},${cafe.lng}`).join('|');
-    
-    const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
-      params: {
-        origins: origins,
-        destinations: destinations,
-        units: 'metric',
-        mode: 'walking',
-        key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
-      }
-    });
+    const destinations = cafes
+      .map((cafe) => `${cafe.lat},${cafe.lng}`)
+      .join("|");
 
-    if (response.data.status === 'OK') {
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/distancematrix/json",
+      {
+        params: {
+          origins: origins,
+          destinations: destinations,
+          units: "metric",
+          mode: "walking",
+          key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+        },
+      }
+    );
+
+    if (response.data.status === "OK") {
       return response.data.rows[0].elements.map((element, index) => ({
         ...cafes[index],
-        distance: element.status === 'OK' ? element.distance.value : null,
-        duration: element.status === 'OK' ? element.duration.value : null,
-        distanceText: element.status === 'OK' ? element.distance.text : null,
-        durationText: element.status === 'OK' ? element.duration.text : null,
-        fallbackDistance: calculateDistance(userLat, userLng, cafes[index].latitude, cafes[index].longitude)
+        distance: element.status === "OK" ? element.distance.value : null,
+        duration: element.status === "OK" ? element.duration.value : null,
+        distanceText: element.status === "OK" ? element.distance.text : null,
+        durationText: element.status === "OK" ? element.duration.text : null,
+        fallbackDistance: calculateDistance(
+          userLat,
+          userLng,
+          cafes[index].latitude,
+          cafes[index].longitude
+        ),
       }));
     }
-    
+
     // Fallback to Haversine if Google Maps fails
-    return cafes.map(cafe => ({
+    return cafes.map((cafe) => ({
       ...cafe,
       distance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
-      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng)
+      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
     }));
   } catch (error) {
-    console.error('Batch distance calculation error:', error);
+    console.error("Batch distance calculation error:", error);
     // Fallback to Haversine formula
-    return cafes.map(cafe => ({
+    return cafes.map((cafe) => ({
       ...cafe,
       distance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
-      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng)
+      fallbackDistance: calculateDistance(userLat, userLng, cafe.lat, cafe.lng),
     }));
   }
 }
@@ -208,7 +223,7 @@ router.post("/cafes/nearby", async (req, res) => {
   try {
     const { lat, lng, radius = 500, useGoogleMaps = false } = req.body;
     connection = await pool.getConnection();
-    
+
     // Get all cafes
     const [cafes] = await connection.execute("SELECT * FROM cafes");
 
@@ -235,20 +250,18 @@ router.post("/cafes/nearby", async (req, res) => {
       // Use Google Maps for more accurate distances
       const cafesWithDistance = await batchCalculateDistances(lat, lng, cafes);
       nearbyCafes = cafesWithDistance
-        .filter(cafe => cafe.distance && cafe.distance <= radius)
+        .filter((cafe) => cafe.distance && cafe.distance <= radius)
         .sort((a, b) => a.distance - b.distance);
     } else {
       // Use Haversine formula (faster, no API calls)
-      nearbyCafes = cafes.map(cafe => {
-        const distance = calculateDistance(
-          lat, lng,
-          cafe.lat, cafe.lng
-        );
-      return { ...cafe, distance, fallbackDistance: distance };
-    })
-    .filter(cafe => cafe.distance < radius) // Within 500 meters
-    .sort((a, b) => a.distance - b.distance);
-  }
+      nearbyCafes = cafes
+        .map((cafe) => {
+          const distance = calculateDistance(lat, lng, cafe.lat, cafe.lng);
+          return { ...cafe, distance, fallbackDistance: distance };
+        })
+        .filter((cafe) => cafe.distance < radius) // Within 500 meters
+        .sort((a, b) => a.distance - b.distance);
+    }
     res.json(nearbyCafes);
   } catch (error) {
     console.error("Error fetching nearby cafes:", error);
@@ -264,7 +277,7 @@ router.post("/stamps/claim", async (req, res) => {
   try {
     const { userId, cafeId, lat, lng, useGoogleMaps = false } = req.body;
     connection = await pool.getConnection();
-    
+
     // Get cafe location
     const [cafes] = await connection.execute(
       "SELECT lat, lng FROM cafes WHERE id = ?",
@@ -278,7 +291,7 @@ router.post("/stamps/claim", async (req, res) => {
     const cafe = cafes[0];
     let distance;
     let verificationMethod = "haversine";
-    
+
     // Verify user location
     if (useGoogleMaps && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
       const googleDistance = await calculateDistanceWithGoogleMaps(
@@ -320,15 +333,15 @@ router.post("/stamps/claim", async (req, res) => {
         success: false,
         error: "You've already collected a stamp from this cafe",
         code: "ALREADY_CLAIMED_FROM_CAFE",
-        firstClaimed: existing[0].created_at
+        firstClaimed: existing[0].created_at,
       });
     }
 
     // Create new stamp
-    await connection.execute("INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)", [
-      userId,
-      cafeId,
-    ]);
+    await connection.execute(
+      "INSERT INTO stamps (user_id, cafe_id) VALUES (?, ?)",
+      [userId, cafeId]
+    );
 
     // Get updated stamp count
     const [stamps] = await connection.execute(
@@ -342,8 +355,7 @@ router.post("/stamps/claim", async (req, res) => {
       distance: Math.round(distance),
       cafeName: cafe.name,
       verificationMethod: verificationMethod,
-    })
-
+    });
   } catch (error) {
     console.error("Error claiming stamp:", error);
     res.status(500).json({ message: "Error claiming stamp" });
@@ -361,8 +373,8 @@ router.get("/users/:userId/stamps", async (req, res) => {
 
     // Validate user ID
     if (!userId || isNaN(userId)) {
-      return res.status(400).json({ 
-        error: "Invalid user ID provided" 
+      return res.status(400).json({
+        error: "Invalid user ID provided",
       });
     }
 
@@ -381,7 +393,6 @@ router.get("/users/:userId/stamps", async (req, res) => {
     }
 
     res.json(stamps);
-    
   } catch (error) {
     console.error("Error fetching user stamps:", error);
     res.status(500).json({ message: "Error fetching stamps" });
