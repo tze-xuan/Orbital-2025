@@ -1,4 +1,8 @@
+import { ReactNode } from "react";
+
 export interface CafeType {
+  name: ReactNode;
+  address: ReactNode;
   cafeName: string;
   cafeLocation: string;
   id: number;
